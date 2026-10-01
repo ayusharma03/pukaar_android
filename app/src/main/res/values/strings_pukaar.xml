@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pukaar strings. Kept apart from bitchat's strings.xml so upstream merges stay simple. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- SOS button -->
+    <string name="pk_sos">SOS</string>
+    <string name="pk_sos_tap_for_help">Tap for help</string>
+    <string name="pk_sos_button_description">SOS. Tap to start sending an emergency alert.</string>
+
+    <!-- Connection pill -->
+    <string name="pk_conn_online">Online</string>
+    <plurals name="pk_conn_mesh">
+        <item quantity="one">Connected to %d phone</item>
+        <item quantity="other">Connected to %d phones</item>
+    </plurals>
+    <string name="pk_conn_radio">Radio connected</string>
+    <string name="pk_conn_isolated">No connection. Messages will wait.</string>
+    <plurals name="pk_conn_gateway">
+        <item quantity="one">Online · Helping %d person</item>
+        <item quantity="other">Online · Helping %d people</item>
+    </plurals>
+
+    <!-- Delivery states -->
+    <string name="pk_delivery_sending">Sending</string>
+    <plurals name="pk_delivery_relayed">
+        <item quantity="one">Relayed through %d phone</item>
+        <item quantity="other">Relayed through %d phones</item>
+    </plurals>
+    <string name="pk_delivery_relayed_plain">Relayed</string>
+    <string name="pk_delivery_radio">Sent by radio</string>
+    <string name="pk_delivery_help_notified">Help notified</string>
+    <string name="pk_delivery_attending">Rescuer attending</string>
+    <string name="pk_delivery_resolved">Resolved</string>
+    <!-- %1$s = state, %2$s = time, e.g. "Help notified · 4:09 pm" -->
+    <string name="pk_delivery_with_time">%1$s · %2$s</string>
+</resources>

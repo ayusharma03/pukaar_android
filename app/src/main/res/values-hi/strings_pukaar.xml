@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pukaar strings, Hindi. NEEDS REVIEW by a native speaker (drafted, not checked). -->
+<resources>
+    <!-- SOS button -->
+    <string name="pk_sos">SOS</string>
+    <string name="pk_sos_tap_for_help">मदद के लिए दबाएँ</string>
+    <string name="pk_sos_button_description">SOS. आपातकालीन संदेश भेजने के लिए दबाएँ।</string>
+
+    <!-- Connection pill -->
+    <string name="pk_conn_online">ऑनलाइन</string>
+    <plurals name="pk_conn_mesh">
+        <item quantity="one">%d फ़ोन से जुड़े हैं</item>
+        <item quantity="other">%d फ़ोन से जुड़े हैं</item>
+    </plurals>
+    <string name="pk_conn_radio">रेडियो जुड़ा है</string>
+    <string name="pk_conn_isolated">कोई कनेक्शन नहीं। संदेश इंतज़ार करेंगे।</string>
+    <plurals name="pk_conn_gateway">
+        <item quantity="one">ऑनलाइन · %d व्यक्ति की मदद कर रहे हैं</item>
+        <item quantity="other">ऑनलाइन · %d लोगों की मदद कर रहे हैं</item>
+    </plurals>
+
+    <!-- Delivery states -->
+    <string name="pk_delivery_sending">भेजा जा रहा है</string>
+    <plurals name="pk_delivery_relayed">
+        <item quantity="one">%d फ़ोन से होकर गया</item>
+        <item quantity="other">%d फ़ोन से होकर गया</item>
+    </plurals>
+    <string name="pk_delivery_relayed_plain">आगे भेजा गया</string>
+    <string name="pk_delivery_radio">रेडियो से भेजा गया</string>
+    <string name="pk_delivery_help_notified">मदद को सूचना मिल गई</string>
+    <string name="pk_delivery_attending">बचाव दल आ रहा है</string>
+    <string name="pk_delivery_resolved">हल हो गया</string>
+    <string name="pk_delivery_with_time">%1$s · %2$s</string>
+</resources>
