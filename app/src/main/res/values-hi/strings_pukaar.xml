@@ -31,4 +31,497 @@
     <string name="pk_delivery_attending">बचाव दल आ रहा है</string>
     <string name="pk_delivery_resolved">हल हो गया</string>
     <string name="pk_delivery_with_time">%1$s · %2$s</string>
+
+    <!-- General -->
+    <string name="pk_app_name_short">पुकार</string>
+    <string name="pk_back">वापस</string>
+    <string name="pk_someone">कोई व्यक्ति</string>
+    <string name="pk_step_of">चरण %1$d / %2$d</string>
+    <string name="pk_conn_none_short">कोई कनेक्शन नहीं</string>
+    <plurals name="pk_phones_short">
+        <item quantity="one">%d फ़ोन</item>
+        <item quantity="other">%d फ़ोन</item>
+    </plurals>
+    <plurals name="pk_people_count">
+        <item quantity="one">%d व्यक्ति</item>
+        <item quantity="other">%d लोग</item>
+    </plurals>
+
+    <!-- SOS flags -->
+    <string name="pk_flag_injured">घायल</string>
+    <string name="pk_flag_trapped">फँसे हुए</string>
+    <string name="pk_flag_water">पानी चाहिए</string>
+    <string name="pk_flag_medicine">दवा चाहिए</string>
+    <string name="pk_flag_child">बच्चे या बुज़ुर्ग</string>
+
+    <!-- SOS status hero copy: first lines are from the design brief tone-of-voice table -->
+    <string name="pk_sos_hero_sending">आपका SOS भेजा जा रहा है</string>
+    <string name="pk_sos_hero_sending_body">अभी पास में कोई फ़ोन नहीं है। हम कोशिश करते रहेंगे।</string>
+    <string name="pk_sos_hero_relayed">आपका SOS रास्ते में है</string>
+    <string name="pk_sos_hero_relayed_body">पास के फ़ोन इसे आगे भेज रहे हैं, जब तक इंटरनेट वाला कोई फ़ोन बचाव दल तक न पहुँचा दे।</string>
+    <string name="pk_sos_hero_notified">मदद को सूचना मिल गई है</string>
+    <string name="pk_sos_hero_notified_body">कंट्रोल रूम के पास आपकी लोकेशन है। अगर सुरक्षित हो तो वहीं रहें।</string>
+    <string name="pk_sos_hero_attending">बचाव दल आपकी मदद के लिए आ रहा है</string>
+    <string name="pk_sos_hero_attending_body">अगर सुरक्षित हो तो वहीं रहें, और फ़ोन चालू रखें।</string>
+    <string name="pk_sos_hero_resolved">आपका SOS पूरा हुआ</string>
+    <string name="pk_sos_hero_resolved_body">कंट्रोल रूम ने आपका SOS बंद कर दिया है। फिर मदद चाहिए तो नया SOS भेजें।</string>
+    <string name="pk_sos_hero_safe">आपने बताया कि आप सुरक्षित हैं</string>
+    <string name="pk_sos_hero_safe_body">हमने कंट्रोल रूम को बता दिया है। फिर मदद चाहिए तो नया SOS भेजें।</string>
+    <string name="pk_sos_im_safe_short">मैं सुरक्षित हूँ</string>
+
+    <!-- SMS -->
+    <string name="pk_sms_sos_from">%1$s की ओर से पुकार SOS।</string>
+    <plurals name="pk_sms_people">
+        <item quantity="one">%d व्यक्ति।</item>
+        <item quantity="other">%d लोग।</item>
+    </plurals>
+    <string name="pk_sms_location">लोकेशन: maps.google.com/?q=%1$s,%2$s</string>
+    <string name="pk_sms_no_location">लोकेशन अभी उपलब्ध नहीं।</string>
+    <string name="pk_sms_time_battery">%1$s · बैटरी %2$d%%</string>
+    <string name="pk_sms_safe">पुकार: %1$s अब सुरक्षित हैं।</string>
+    <string name="pk_sms_test">यह पुकार का टेस्ट संदेश है। %1$s ने आपको आपातकालीन संपर्क बनाया है। अगर वे SOS भेजते हैं, तो आपको उनकी लोकेशन के साथ SMS मिलेगा।</string>
+
+    <!-- Notifications -->
+    <string name="pk_notif_channel_sos">आपका SOS</string>
+    <string name="pk_notif_channel_sos_desc">SOS चालू होने पर दिखाता है कि उसके साथ क्या हो रहा है।</string>
+    <string name="pk_notif_channel_alerts">पास का SOS और हिलाना</string>
+    <string name="pk_notif_channel_alerts_desc">आपके पास के लोगों के SOS, और फ़ोन हिलाकर SOS की उलटी गिनती।</string>
+    <string name="pk_notif_channel_official">आधिकारिक संदेश</string>
+    <string name="pk_notif_channel_official_desc">आपदा राहत चैट में कंट्रोल रूम के संदेश।</string>
+    <string name="pk_notif_reached_at">आपका SOS %1$s पर कंट्रोल रूम पहुँचा</string>
+    <string name="pk_notif_shake_title">फ़ोन हिलाया गया</string>
+    <string name="pk_notif_shake_text">SOS की उलटी गिनती खोलने के लिए दबाएँ।</string>
+    <string name="pk_notif_nearby_sos_title">पास में SOS · %1$s</string>
+
+    <!-- Widgets -->
+    <string name="pk_widget_small_desc">बड़ा SOS बटन</string>
+    <string name="pk_widget_medium_desc">SOS बटन और कनेक्शन की स्थिति</string>
+    <string name="pk_widget_sos_active">SOS चालू है</string>
+    <plurals name="pk_widget_hint">
+        <item quantity="one">SOS दबाएँ। रद्द करने के लिए %d सेकंड।</item>
+        <item quantity="other">SOS दबाएँ। रद्द करने के लिए %d सेकंड।</item>
+    </plurals>
+
+    <!-- Common actions -->
+    <string name="pk_ok">ठीक है</string>
+    <string name="pk_cancel">रद्द करें</string>
+    <string name="pk_continue">आगे बढ़ें</string>
+    <string name="pk_finish">पूरा करें</string>
+    <string name="pk_done">हो गया</string>
+    <string name="pk_close">बंद करें</string>
+    <string name="pk_save">सेव करें</string>
+    <string name="pk_add">जोड़ें</string>
+    <string name="pk_added">जोड़ा गया</string>
+    <string name="pk_remove">हटाएँ</string>
+    <string name="pk_change">बदलें</string>
+    <string name="pk_reset">फिर से शुरू करें</string>
+    <string name="pk_stop">रोकें</string>
+    <string name="pk_later">बाद में</string>
+    <string name="pk_skip_for_now">अभी छोड़ें</string>
+    <string name="pk_not_yet">अभी नहीं</string>
+    <string name="pk_allow">अनुमति दें</string>
+    <string name="pk_allowed">अनुमति है</string>
+    <string name="pk_try_again">फिर कोशिश करें</string>
+    <string name="pk_turn_on">चालू करें</string>
+    <string name="pk_call">कॉल करें</string>
+    <string name="pk_on">चालू</string>
+    <string name="pk_off">बंद</string>
+    <string name="pk_none">कोई नहीं</string>
+    <string name="pk_low">कम</string>
+    <string name="pk_medium">मध्यम</string>
+    <string name="pk_high">ज़्यादा</string>
+    <string name="pk_more_options">और विकल्प</string>
+    <string name="pk_add_contacts">संपर्क जोड़ें</string>
+    <string name="pk_mb">%1$d MB</string>
+    <string name="pk_distance_away">%1$s दूर</string>
+    <plurals name="pk_seconds">
+        <item quantity="one">%d सेकंड</item>
+        <item quantity="other">%d सेकंड</item>
+    </plurals>
+
+    <!-- Bottom navigation -->
+    <string name="pk_tab_home">होम</string>
+    <string name="pk_tab_chat">चैट</string>
+    <string name="pk_tab_map">नक्शा</string>
+    <string name="pk_tab_guides">गाइड</string>
+
+    <!-- Home (2h) -->
+    <string name="pk_home_call">कॉल</string>
+    <string name="pk_home_explain_online">आपके पास इंटरनेट है। आपका SOS सीधे बचाव दल तक जाएगा।</string>
+    <string name="pk_home_explain_gateway">आपके पास इंटरनेट है और आप पास के लोगों के संदेश आगे भेज रहे हैं।</string>
+    <string name="pk_home_explain_mesh">इंटरनेट नहीं है। आपका SOS फ़ोन से फ़ोन होते हुए मदद तक पहुँचेगा।</string>
+    <string name="pk_home_explain_radio">पास में कोई फ़ोन नहीं। आपका SOS रेडियो से जाएगा।</string>
+    <string name="pk_home_explain_isolated">अभी पास में कोई फ़ोन नहीं। आपका SOS इंतज़ार करेगा और कोशिश करता रहेगा।</string>
+    <string name="pk_home_battery_low">बैटरी %1$d%%। ज़्यादा देर चलाने के लिए स्क्रीन की रोशनी कम करें।</string>
+    <string name="pk_home_offline_missing">आपके इलाके का ऑफ़लाइन नक्शा अभी सेव नहीं है। क्या सेव है, देखने के लिए दबाएँ।</string>
+    <string name="pk_home_sos_active">आपका SOS चालू है</string>
+    <string name="pk_home_see_status">स्थिति देखें</string>
+    <string name="pk_home_tile_unread">%1$s, %2$d नए</string>
+
+    <!-- SOS countdown (2k) -->
+    <string name="pk_countdown_title">आपका SOS भेजा जाएगा</string>
+    <string name="pk_countdown_title_practice">अभ्यास: भेजा जाएगा</string>
+    <string name="pk_countdown_seconds_left">SOS भेजने में %1$d सेकंड बाकी</string>
+    <string name="pk_countdown_location_searching">लोकेशन ढूँढी जा रही है…</string>
+    <string name="pk_countdown_location_found">लोकेशन मिल गई · %1$d मीटर के अंदर</string>
+    <string name="pk_countdown_location_found_plain">लोकेशन मिल गई</string>
+    <string name="pk_countdown_location_denied">पुकार के लिए लोकेशन बंद है। आपका SOS बिना लोकेशन के जाएगा।</string>
+    <string name="pk_countdown_location_none">अभी लोकेशन नहीं मिली। हम आख़िरी पता लोकेशन भेजेंगे।</string>
+    <string name="pk_countdown_people">आपके साथ कितने लोग</string>
+    <string name="pk_countdown_people_less">एक व्यक्ति कम</string>
+    <string name="pk_countdown_people_more">एक व्यक्ति ज़्यादा</string>
+    <string name="pk_countdown_add_message">संदेश जोड़ें</string>
+    <string name="pk_countdown_add_message_hint">· उलटी गिनती रुक जाएगी</string>
+    <string name="pk_countdown_message_label">छोटा संदेश</string>
+    <string name="pk_countdown_message_bytes">%1$d बाइट बाकी</string>
+    <string name="pk_countdown_send_now">अभी SOS भेजें</string>
+    <string name="pk_countdown_finish_practice">अभ्यास पूरा करें</string>
+    <string name="pk_practice_done_title">अभ्यास पूरा हुआ</string>
+    <string name="pk_practice_done_body">कुछ भी नहीं भेजा गया। असली SOS में आपकी लोकेशन और जानकारी पास के फ़ोन, बचाव दल और आपके आपातकालीन संपर्कों तक जाती है।</string>
+
+    <!-- SOS status (2i) -->
+    <string name="pk_sos_status_title">आपका SOS</string>
+    <string name="pk_sos_sent_at">%1$s पर भेजा · %2$s</string>
+    <string name="pk_sos_how_travelled">आपका SOS कैसे पहुँचा</string>
+    <string name="pk_sos_hop_you">आपका फ़ोन</string>
+    <string name="pk_sos_hop_nearby">पास के फ़ोन</string>
+    <string name="pk_sos_hop_radio">रेडियो</string>
+    <string name="pk_sos_hop_internet">इंटरनेट वाला फ़ोन</string>
+    <string name="pk_sos_hop_rescuers">बचाव दल</string>
+    <string name="pk_sos_what_happened">क्या हुआ</string>
+    <plurals name="pk_sos_passed_through">
+        <item quantity="one">पास के %d फ़ोन तक पहुँचा</item>
+        <item quantity="other">पास के %d फ़ोन तक पहुँचा</item>
+    </plurals>
+    <string name="pk_sos_what_you_sent">आपने क्या भेजा</string>
+    <string name="pk_sos_update_details">जानकारी बदलें</string>
+    <string name="pk_sos_update_body">आपने जो भेजा उसे बदलें। आपका SOS नई जानकारी और आपकी ताज़ा लोकेशन के साथ फिर से जाएगा।</string>
+    <string name="pk_sos_send_update">बदलाव भेजें</string>
+    <string name="pk_sos_no_location">लोकेशन उपलब्ध नहीं</string>
+    <string name="pk_sos_accuracy">%1$d मीटर तक सही</string>
+    <string name="pk_sos_family_told">परिवार को बताया</string>
+    <string name="pk_sos_no_contacts">आपने आपातकालीन संपर्क नहीं जोड़े हैं, इसलिए परिवार को SMS नहीं गया।</string>
+    <string name="pk_family_sent_direct">आपके फ़ोन से SMS गया</string>
+    <string name="pk_family_sent_server">सर्वर से SMS गया</string>
+    <string name="pk_family_sending">भेजा जा रहा है…</string>
+    <string name="pk_family_waiting">इंतज़ार</string>
+    <string name="pk_family_retry">अभी नहीं गया। फिर कोशिश होगी।</string>
+    <string name="pk_sos_tip">बैटरी बचाने के लिए स्क्रीन की रोशनी कम करें। नाव या हेलिकॉप्टर की आवाज़ सुनें तो कोई चमकदार चीज़ हिलाएँ।</string>
+    <string name="pk_sos_im_safe_now">मैं अब सुरक्षित हूँ</string>
+    <string name="pk_sos_safe_confirm_title">क्या आप सुरक्षित हैं?</string>
+    <string name="pk_sos_safe_confirm_body">हम कंट्रोल रूम और आपके परिवार को बता देंगे कि आप सुरक्षित हैं। आपका SOS बंद हो जाएगा।</string>
+    <string name="pk_sos_safe_confirm_yes">हाँ, मैं सुरक्षित हूँ</string>
+    <string name="pk_lock_sent_body">आपका SOS जा रहा है। उसका हाल देखने के लिए फ़ोन अनलॉक करें।</string>
+    <string name="pk_lock_open_app">पुकार खोलें</string>
+
+    <!-- Disaster Relief chat (2l) -->
+    <string name="pk_chat_title">आपदा राहत</string>
+    <plurals name="pk_chat_subtitle">
+        <item quantity="one">%d फ़ोन तक पहुँच · बचाव दल इसे पढ़ सकता है</item>
+        <item quantity="other">%d फ़ोन तक पहुँच · बचाव दल इसे पढ़ सकता है</item>
+    </plurals>
+    <string name="pk_chat_info">इस चैट के बारे में</string>
+    <string name="pk_chat_info_title">बचाव दल यह चैट पढ़ सकता है</string>
+    <string name="pk_chat_info_body">पास के सभी लोग और बचाव कंट्रोल रूम आपदा राहत के संदेश देख सकते हैं। यहाँ कोई निजी बात न लिखें।</string>
+    <string name="pk_chat_official">आधिकारिक · %1$s</string>
+    <string name="pk_chat_sos_from">SOS · %1$s</string>
+    <string name="pk_chat_you">आप</string>
+    <string name="pk_chat_battery">बैटरी %1$d%%</string>
+    <string name="pk_chat_safe_line">%1$s अब सुरक्षित हैं · %2$s</string>
+    <string name="pk_chat_location_shared">लोकेशन भेजी गई</string>
+    <string name="pk_chat_location_attached">आपकी लोकेशन साथ जाएगी</string>
+    <string name="pk_chat_location_add">मेरी लोकेशन जोड़ें</string>
+    <string name="pk_chat_location_remove">मेरी लोकेशन न जोड़ें</string>
+    <string name="pk_chat_placeholder">सबको संदेश भेजें</string>
+    <string name="pk_chat_send">भेजें</string>
+    <string name="pk_chat_send_radio">रेडियो से भेजें</string>
+    <string name="pk_chat_radio_bytes">रेडियो के लिए %1$d बाइट बाकी</string>
+    <string name="pk_chat_reply_safe">सुरक्षित</string>
+    <string name="pk_chat_reply_help">मदद चाहिए</string>
+    <string name="pk_chat_reply_water">पानी बाँट सकते हैं</string>
+    <string name="pk_chat_empty_title">अभी कोई संदेश नहीं</string>
+    <string name="pk_chat_empty_body">यहाँ के संदेश पास के सभी लोगों और बचाव दल तक पहुँचते हैं।</string>
+    <string name="pk_chat_empty_isolated">अभी पास में कोई फ़ोन नहीं। आपके संदेश इंतज़ार करेंगे और किसी के पास आते ही चले जाएँगे।</string>
+
+    <!-- Network (2j) -->
+    <string name="pk_network_title">नेटवर्क</string>
+    <string name="pk_network_phones_nearby">पास के फ़ोन</string>
+    <plurals name="pk_network_nearby_count">
+        <item quantity="one">पास में %d फ़ोन</item>
+        <item quantity="other">पास में %d फ़ोन</item>
+    </plurals>
+    <plurals name="pk_network_reach">
+        <item quantity="one">इन %2$d फ़ोन से होकर %1$d फ़ोन तक पहुँचा जा सकता है।</item>
+        <item quantity="other">इन %2$d फ़ोन से होकर %1$d फ़ोन तक पहुँचा जा सकता है।</item>
+    </plurals>
+    <string name="pk_network_internet">इंटरनेट</string>
+    <string name="pk_network_available">उपलब्ध</string>
+    <string name="pk_network_not_available">उपलब्ध नहीं</string>
+    <string name="pk_network_mesh">ब्लूटूथ मेश</string>
+    <plurals name="pk_network_mesh_detail">
+        <item quantity="one">%1$d पास · %2$d तक पहुँच</item>
+        <item quantity="other">%1$d पास · %2$d तक पहुँच</item>
+    </plurals>
+    <string name="pk_network_bluetooth_off">ब्लूटूथ बंद है</string>
+    <string name="pk_network_radio">रेडियो डिवाइस</string>
+    <string name="pk_network_radio_paired">जुड़ा है</string>
+    <string name="pk_network_radio_not_paired">जुड़ा नहीं है</string>
+    <string name="pk_network_helping">दूसरों की मदद</string>
+    <string name="pk_network_helping_starts">इंटरनेट मिलने पर शुरू होगा</string>
+    <string name="pk_network_helping_ready">पास के लोगों के संदेश आगे भेजने के लिए तैयार</string>
+    <string name="pk_network_helping_no_server">इस वर्ज़न में बचाव सर्वर सेट नहीं है</string>
+    <plurals name="pk_network_helping_count">
+        <item quantity="one">%d व्यक्ति की मदद</item>
+        <item quantity="other">%d लोगों की मदद</item>
+    </plurals>
+    <plurals name="pk_network_waiting">
+        <item quantity="one">%d संदेश भेजे जाने का इंतज़ार कर रहा है</item>
+        <item quantity="other">%d संदेश भेजे जाने का इंतज़ार कर रहे हैं</item>
+    </plurals>
+    <string name="pk_network_pair_radio">रेडियो डिवाइस जोड़ें</string>
+    <string name="pk_radio_unavailable_title">रेडियो जोड़ना जल्द आ रहा है</string>
+    <string name="pk_radio_unavailable_body">LoRa रेडियो (Meshtastic) जोड़ना इस वर्ज़न में अभी नहीं है। आपका SOS फिर भी पास के फ़ोन और SMS से जाएगा।</string>
+
+    <!-- Map (2p) -->
+    <string name="pk_map_search">शरण स्थल, अस्पताल खोजें</string>
+    <string name="pk_map_no_results">कोई जगह नहीं मिली</string>
+    <string name="pk_map_layer_shelters">शरण स्थल</string>
+    <string name="pk_map_layer_hospitals">अस्पताल</string>
+    <string name="pk_map_layer_police">पुलिस</string>
+    <string name="pk_map_shelter">शरण स्थल</string>
+    <string name="pk_map_hospital">अस्पताल</string>
+    <string name="pk_map_police">पुलिस थाना</string>
+    <string name="pk_map_nearest_shelter">सबसे पास का शरण स्थल</string>
+    <string name="pk_map_distance_direction">%2$s में %1$s</string>
+    <string name="pk_map_capacity">%1$d लोगों की जगह</string>
+    <string name="pk_map_no_gps">अभी लोकेशन नहीं मिली</string>
+    <string name="pk_map_no_places">इस इलाके की कोई जगह अभी सेव नहीं है।</string>
+    <string name="pk_map_show_direction">दिशा दिखाएँ</string>
+    <string name="pk_map_my_location">मेरी लोकेशन</string>
+    <string name="pk_map_sample_note">टेस्ट के लिए नमूना जगहें · नक्शा डाउनलोड नहीं</string>
+    <string name="pk_map_outside_area">आप सेव किए गए इलाके से बाहर हैं। उसकी जगहें दिख रही हैं।</string>
+    <string name="pk_map_tiles_note">नक्शा डाउनलोड नहीं · सेव की गई जगहें दिख रही हैं</string>
+    <string name="pk_dir_n">उत्तर</string>
+    <string name="pk_dir_ne">उत्तर-पूर्व</string>
+    <string name="pk_dir_e">पूर्व</string>
+    <string name="pk_dir_se">दक्षिण-पूर्व</string>
+    <string name="pk_dir_s">दक्षिण</string>
+    <string name="pk_dir_sw">दक्षिण-पश्चिम</string>
+    <string name="pk_dir_w">पश्चिम</string>
+    <string name="pk_dir_nw">उत्तर-पश्चिम</string>
+
+    <!-- Direction (2q) -->
+    <string name="pk_direction_title">दिशा</string>
+    <string name="pk_direction_screen_on">स्क्रीन चालू रहेगी</string>
+    <string name="pk_direction_subtitle">%1$s · सीधी दूरी</string>
+    <string name="pk_direction_compass_description">तीर %1$s की ओर है</string>
+    <plurals name="pk_direction_walk">
+        <item quantity="one">पैदल लगभग %d मिनट</item>
+        <item quantity="other">पैदल लगभग %d मिनट</item>
+    </plurals>
+    <string name="pk_direction_warning">तीर सीधी रेखा दिखाता है, रास्ता नहीं। सुरक्षित सड़कों से जाएँ। पानी, मलबे और टूटी इमारतों से दूर रहें।</string>
+    <string name="pk_direction_no_gps">आपकी लोकेशन का इंतज़ार है। हो सके तो खुली जगह में खड़े हों।</string>
+    <string name="pk_direction_calibrate">कंपास को ठीक करना है। फ़ोन को कुछ बार 8 के आकार में घुमाएँ।</string>
+    <string name="pk_direction_arrived">आप पहुँच गए हैं</string>
+    <string name="pk_direction_far">यह शरण स्थल 5 किमी से ज़्यादा दूर है। पास वाला चुनने के लिए बदलें दबाएँ।</string>
+    <string name="pk_direction_minimap">आपका और शरण स्थल का नक्शा</string>
+
+    <!-- Emergency calling (2r) -->
+    <string name="pk_call_title">मदद के लिए कॉल करें</string>
+    <string name="pk_call_no_signal_title">मोबाइल सिग्नल नहीं है</string>
+    <string name="pk_call_no_signal_body">कॉल शायद न लगे। SOS फिर भी पास के फ़ोन से होकर मदद तक पहुँच सकता है।</string>
+    <string name="pk_call_send_sos">इसके बजाय SOS भेजें</string>
+    <string name="pk_call_112">आपातकाल</string>
+    <string name="pk_call_police">पुलिस</string>
+    <string name="pk_call_ambulance">एम्बुलेंस</string>
+    <string name="pk_call_fire">फ़ायर</string>
+    <string name="pk_call_women">महिला हेल्पलाइन</string>
+    <string name="pk_call_district">ज़िला कंट्रोल रूम</string>
+    <string name="pk_call_district_set">अपने ज़िले का नंबर जोड़ें</string>
+    <string name="pk_call_card_description">%1$s को कॉल करें, %2$s</string>
+    <string name="pk_call_your_contacts">आपके आपातकालीन संपर्क</string>
+
+    <!-- Guides (2s, 2t, 2u) -->
+    <string name="pk_guides_what_to_do">क्या करें</string>
+    <string name="pk_guides_get_ready">तैयार रहें</string>
+    <string name="pk_guides_stages">पहले · दौरान · बाद में</string>
+    <string name="pk_guides_progress">%2$d में से %1$d पूरे</string>
+    <string name="pk_guides_coming">जल्द आ रहा है</string>
+    <string name="pk_guides_saved">इस फ़ोन पर सेव। स्रोत: NDMA।</string>
+    <string name="pk_guide_flood">बाढ़</string>
+    <string name="pk_guide_earthquake">भूकंप</string>
+    <string name="pk_guide_fire">आग</string>
+    <string name="pk_guide_before">पहले</string>
+    <string name="pk_guide_during">दौरान</string>
+    <string name="pk_guide_after">बाद में</string>
+    <string name="pk_guide_large_text">बड़े अक्षर</string>
+    <string name="pk_guide_not_added">इस हिस्से के लिए NDMA की आधिकारिक जानकारी अभी जोड़ी नहीं गई है।</string>
+    <string name="pk_guide_source">स्रोत: NDMA।</string>
+    <string name="pk_guide_source_sample">स्रोत: NDMA, बाढ़ दिशानिर्देश। यह नमूना शब्द हैं, इन्हें NDMA के आधिकारिक पाठ से बदला जाना है।</string>
+    <!-- Sample wording from the design handoff (2t), translated. Replace with the official NDMA Hindi text. -->
+    <string-array name="pk_guide_flood_during">
+        <item>सबसे ऊपर की मंज़िल या छत पर जाएँ। अपना ज़रूरी सामान का बैग साथ लें।</item>
+        <item>मेन स्विच से बिजली और गैस बंद करें।</item>
+        <item>बहते पानी में न चलें, न गाड़ी चलाएँ।</item>
+        <item>सिर्फ़ उबला, फ़िल्टर किया हुआ या बोतल का पानी पिएँ।</item>
+        <item>फ़ोन को सूखा रखें और उसकी बैटरी बचाएँ।</item>
+    </string-array>
+    <string name="pk_checklist_gobag">ज़रूरी सामान का बैग</string>
+    <string name="pk_checklist_home">घर की सुरक्षा</string>
+    <string name="pk_checklist_progress">%2$d में से %1$d पूरे</string>
+    <string name="pk_checklist_not_added">NDMA की घर की सुरक्षा सूची अभी जोड़ी नहीं गई है।</string>
+    <string name="pk_gobag_group_documents">कागज़ात</string>
+    <string name="pk_gobag_group_food">पानी और खाना</string>
+    <string name="pk_gobag_group_health">सेहत</string>
+    <string name="pk_gobag_group_power">रोशनी और बिजली</string>
+    <string name="pk_gobag_group_other">अन्य</string>
+    <string name="pk_gobag_ids">आधार और राशन कार्ड की कॉपी</string>
+    <string name="pk_gobag_bank">प्लास्टिक की थैली में बैंक के कागज़</string>
+    <string name="pk_gobag_water">पीने का पानी, 3 लीटर</string>
+    <string name="pk_gobag_food">3 दिन का सूखा खाना</string>
+    <string name="pk_gobag_ors">ORS के पैकेट</string>
+    <string name="pk_gobag_medicines">1 हफ़्ते की दवाइयाँ</string>
+    <string name="pk_gobag_firstaid">फ़र्स्ट-एड किट</string>
+    <string name="pk_gobag_torch">टॉर्च</string>
+    <string name="pk_gobag_powerbank">चार्ज किया हुआ पावर बैंक</string>
+    <string name="pk_gobag_batteries">अतिरिक्त बैटरियाँ</string>
+    <string name="pk_gobag_whistle">सीटी</string>
+    <string name="pk_gobag_rope">रस्सी, 10 मीटर</string>
+
+    <!-- Settings (2v) -->
+    <string name="pk_settings_title">सेटिंग</string>
+    <string name="pk_settings_language">भाषा</string>
+    <string name="pk_lang_hindi">हिन्दी</string>
+    <string name="pk_lang_english">English</string>
+    <string name="pk_settings_profile">प्रोफ़ाइल</string>
+    <string name="pk_settings_profile_empty">अपना नाम और जानकारी जोड़ें</string>
+    <string name="pk_settings_contacts">आपातकालीन संपर्क</string>
+    <string name="pk_settings_sos_triggers">SOS भेजने के तरीके</string>
+    <string name="pk_settings_shake">फ़ोन हिलाकर SOS भेजें</string>
+    <string name="pk_settings_shake_hint">3 बार ज़ोर से हिलाएँ</string>
+    <string name="pk_settings_sensitivity">हिलाने की संवेदनशीलता</string>
+    <string name="pk_settings_countdown">उलटी गिनती का समय</string>
+    <string name="pk_settings_tile_widget">क्विक सेटिंग टाइल और विजेट</string>
+    <string name="pk_settings_tile_widget_hint">इन्हें कैसे जोड़ें</string>
+    <string name="pk_settings_offline">ऑफ़लाइन डेटा</string>
+    <string name="pk_settings_offline_saved">इस फ़ोन पर %1$d MB सेव · नक्शा डाउनलोड नहीं</string>
+    <string name="pk_settings_offline_download">दूसरा इलाका डाउनलोड करें</string>
+    <string name="pk_settings_offline_needs_internet">इंटरनेट चाहिए</string>
+    <string name="pk_settings_radio">रेडियो डिवाइस</string>
+    <string name="pk_settings_radio_none">कोई रेडियो नहीं जुड़ा</string>
+    <string name="pk_settings_radio_hint">पास में फ़ोन न हों तो LoRa रेडियो SOS भेजता है</string>
+    <string name="pk_settings_radio_pair">रेडियो जोड़ें</string>
+    <string name="pk_settings_battery">बैटरी सेवर</string>
+    <string name="pk_settings_battery_auto">20% से कम पर चालू करें</string>
+    <string name="pk_settings_battery_auto_hint">फ़ोन कम बार ढूँढता है</string>
+    <string name="pk_settings_battery_now">अभी बैटरी सेवर</string>
+    <string name="pk_settings_theme">थीम</string>
+    <string name="pk_theme_dark">गहरा</string>
+    <string name="pk_theme_light">हल्का</string>
+    <string name="pk_theme_sunlight">धूप</string>
+    <string name="pk_theme_system">सिस्टम</string>
+    <string name="pk_settings_theme_hint">धूप थीम बाहर तेज़ रोशनी में साफ़ दिखने के लिए है।</string>
+    <string name="pk_settings_calling">कॉल</string>
+    <string name="pk_settings_district_hint">आपके ज़िले के आपदा कंट्रोल रूम का नंबर। यह कॉल वाली स्क्रीन पर दिखेगा।</string>
+    <string name="pk_settings_about">पुकार के बारे में</string>
+    <string name="pk_settings_about_hint">वर्ज़न %1$s · श्रेय और ओपन-सोर्स लाइसेंस</string>
+    <string name="pk_offline_unknown_region">आपका इलाका</string>
+    <string name="pk_offline_unavailable_title">नक्शा डाउनलोड अभी तैयार नहीं</string>
+    <string name="pk_offline_unavailable_body">इस वर्ज़न में ऑफ़लाइन नक्शा डाउनलोड नहीं हो सकता। शरण स्थल, अस्पताल, पुलिस और सुरक्षा गाइड पहले से इस फ़ोन पर सेव हैं और बिना नेटवर्क के चलते हैं।</string>
+
+    <!-- Profile and contacts (2d, 2e, 2w) -->
+    <string name="pk_profile_name">नाम</string>
+    <string name="pk_profile_phone">फ़ोन नंबर</string>
+    <string name="pk_profile_blood">ब्लड ग्रुप · ज़रूरी नहीं</string>
+    <string name="pk_profile_blood_unknown">पता नहीं</string>
+    <string name="pk_profile_notes">सेहत की जानकारी · ज़रूरी नहीं</string>
+    <string name="pk_profile_notes_hint">जैसे: डायबिटीज़ है, इनहेलर लेते हैं</string>
+    <string name="pk_profile_why">आपका SOS पहुँचने पर बचाव दल यह जानकारी देखता है।</string>
+    <string name="pk_contacts_pick">संपर्कों में से चुनें</string>
+    <string name="pk_contacts_add_manually">ख़ुद जोड़ें</string>
+    <string name="pk_contacts_add_title">संपर्क जोड़ें</string>
+    <string name="pk_contacts_relation">रिश्ता · ज़रूरी नहीं</string>
+    <string name="pk_contacts_relation_hint">जैसे: बहन</string>
+    <string name="pk_contacts_count">%2$d में से %1$d जोड़े</string>
+    <string name="pk_contacts_count_more">%2$d में से %1$d · %3$d और जोड़ सकते हैं</string>
+    <string name="pk_contacts_not_added">यह संपर्क नहीं जुड़ा। नंबर जाँचें, देखें कि यह पहले से सूची में न हो, और %1$d से कम संपर्क हों।</string>
+    <string name="pk_contacts_remove_named">%1$s को हटाएँ</string>
+    <string name="pk_contacts_send_test">टेस्ट भेजें</string>
+    <string name="pk_contacts_test_none">अभी टेस्ट नहीं हुआ</string>
+    <string name="pk_contacts_test_sending">टेस्ट भेजा जा रहा है…</string>
+    <string name="pk_contacts_test_sent">टेस्ट SMS भेजा · %1$s</string>
+    <string name="pk_contacts_test_delivered">टेस्ट SMS पहुँचा · %1$s</string>
+    <string name="pk_contacts_test_failed">टेस्ट नहीं गया। सिग्नल और SMS की अनुमति जाँचें।</string>
+    <string name="pk_contacts_preview_title">उन्हें क्या मिलेगा</string>
+    <string name="pk_contacts_preview_from">%1$s से SMS</string>
+    <string name="pk_contacts_preview_note">असली SOS में आपके साथ के लोग, आपकी ज़रूरत और आपका संदेश भी होता है।</string>
+
+    <!-- SOS setup (2g) -->
+    <string name="pk_setup_title">क्विक सेटिंग टाइल और विजेट</string>
+    <string name="pk_setup_tile">क्विक सेटिंग टाइल</string>
+    <string name="pk_setup_tile_hint">ऊपर से नीचे स्वाइप करें, SOS दबाएँ</string>
+    <string name="pk_setup_tile_manual">दो बार नीचे स्वाइप करें, पेंसिल दबाएँ, और पुकार SOS को अपनी टाइलों में खींचें</string>
+    <string name="pk_setup_widget">होम और लॉक-स्क्रीन विजेट</string>
+    <string name="pk_setup_widget_hint">आपकी स्क्रीन पर बड़ा SOS बटन</string>
+    <string name="pk_setup_widget_manual">होम स्क्रीन को दबाकर रखें, विजेट दबाएँ, और पुकार ढूँढें</string>
+    <plurals name="pk_setup_countdown_note">
+        <item quantity="one">हर SOS %d सेकंड की उलटी गिनती से शुरू होता है, ताकि ग़लती से भेजा हो तो रद्द कर सकें।</item>
+        <item quantity="other">हर SOS %d सेकंड की उलटी गिनती से शुरू होता है, ताकि ग़लती से भेजा हो तो रद्द कर सकें।</item>
+    </plurals>
+    <string name="pk_setup_practice">SOS का अभ्यास करें</string>
+    <string name="pk_setup_practice_hint">अभ्यास में सिर्फ़ उलटी गिनती चलती है। कुछ नहीं भेजा जाता।</string>
+
+    <!-- Onboarding (2m to 2g) -->
+    <string name="pk_onb_more_languages">और भाषाएँ जल्द आ रही हैं</string>
+    <string name="pk_onb_welcome_title">बिना नेटवर्क के भी मदद बुलाएँ</string>
+    <string name="pk_onb_welcome_body">पुकार आपका संदेश फ़ोन से फ़ोन तक पहुँचाता है, जब तक वह बचाव दल और आपके परिवार तक न पहुँच जाए।</string>
+    <string name="pk_onb_how_title">पुकार कैसे काम करता है</string>
+    <string name="pk_onb_how_1_title">संदेश फ़ोन से फ़ोन तक जाते हैं</string>
+    <string name="pk_onb_how_1_body">ब्लूटूथ से। इंटरनेट या SIM की ज़रूरत नहीं।</string>
+    <string name="pk_onb_how_2_title">इंटरनेट वाला कोई भी फ़ोन उन्हें आगे भेज देता है</string>
+    <string name="pk_onb_how_2_body">यह अपने आप, पीछे चलता रहता है।</string>
+    <string name="pk_onb_how_3_title">बचाव दल उन्हें नक्शे पर देखता है</string>
+    <string name="pk_onb_how_3_body">और आपके परिवार को SMS मिलता है।</string>
+    <string name="pk_onb_how_visible">बचाव दल आपदा राहत चैट पढ़ सकता है। वहाँ कोई निजी बात न लिखें।</string>
+    <string name="pk_onb_perm_title">पुकार को क्या चाहिए</string>
+    <string name="pk_perm_nearby">पास के फ़ोन</string>
+    <string name="pk_perm_nearby_why">बिना इंटरनेट के संदेश भेजने के लिए</string>
+    <string name="pk_perm_nearby_impact">अनुमति नहीं। पुकार पास के फ़ोन तक नहीं पहुँच सकता, इसलिए संदेश और SOS सिर्फ़ SMS से जाएँगे।</string>
+    <string name="pk_perm_location">लोकेशन</string>
+    <string name="pk_perm_location_why">ताकि बचाव दल जान सके आप कहाँ हैं</string>
+    <string name="pk_perm_location_impact">अनुमति नहीं। आपका SOS बिना लोकेशन के जाएगा।</string>
+    <string name="pk_perm_notifications">सूचनाएँ</string>
+    <string name="pk_perm_notifications_why">मदद का जवाब आने पर बताने के लिए</string>
+    <string name="pk_perm_notifications_impact">अनुमति नहीं। आपको बचाव दल के जवाब या पास के लोगों के SOS नहीं दिखेंगे।</string>
+    <string name="pk_perm_sms">SMS</string>
+    <string name="pk_perm_sms_why">सिग्नल होने पर परिवार को SMS भेजने के लिए</string>
+    <string name="pk_perm_sms_impact">अनुमति नहीं। SOS सर्वर तक पहुँचने पर ही परिवार को ख़बर मिलेगी।</string>
+    <string name="pk_perm_phone">फ़ोन</string>
+    <string name="pk_perm_phone_why">एक बार दबाकर आपातकालीन कॉल के लिए</string>
+    <string name="pk_perm_phone_impact">अनुमति नहीं। कॉल पहले डायलर खोलेगी, एक बार और दबाना होगा।</string>
+    <string name="pk_onb_details_title">आपके बारे में</string>
+    <string name="pk_onb_details_body">आपके SOS के साथ बचाव दल यह देखता है।</string>
+    <string name="pk_onb_contacts_title">हम किसे बताएँ?</string>
+    <string name="pk_onb_contacts_body">SOS भेजने पर उन्हें आपकी लोकेशन के साथ SMS मिलेगा। ज़्यादा से ज़्यादा 5 लोग।</string>
+    <string name="pk_onb_offline_title">अपना इलाका ऑफ़लाइन के लिए सेव करें</string>
+    <string name="pk_onb_offline_body">इंटरनेट रहते अभी डाउनलोड करें। बाद में बिना नेटवर्क के चलेगा।</string>
+    <string name="pk_onb_offline_detected">आपकी लोकेशन से पता चला</string>
+    <string name="pk_onb_offline_download">%1$d MB डाउनलोड करें</string>
+    <string name="pk_onb_offline_wifi">आप वाई-फ़ाई पर हैं। मोबाइल डेटा ख़र्च नहीं होगा।</string>
+    <string name="pk_offline_map">ऑफ़लाइन नक्शा</string>
+    <string name="pk_offline_map_detail">सड़कें, नदियाँ, गाँव</string>
+    <string name="pk_offline_places">शरण स्थल, अस्पताल, पुलिस</string>
+    <string name="pk_offline_places_detail">ऐप के साथ सेव</string>
+    <string name="pk_offline_guides">सुरक्षा गाइड</string>
+    <string name="pk_offline_guides_detail">बाढ़, भूकंप, आग</string>
+    <string name="pk_offline_saved">सेव है</string>
+    <string name="pk_onb_setup_title">SOS भेजने के तीन और तरीके</string>
+    <string name="pk_onb_setup_body">ये तब भी चलते हैं जब पुकार बंद हो या फ़ोन लॉक हो।</string>
+
+    <!-- About -->
+    <string name="pk_about_version">वर्ज़न %1$s</string>
+    <string name="pk_about_body">पुकार आपदा में फँसे लोगों को नेटवर्क न होने पर भी SOS भेजने और आपस में बात करने में मदद करता है। संदेश ब्लूटूथ से फ़ोन से फ़ोन तक जाते हैं, जब तक इंटरनेट वाला कोई फ़ोन उन्हें अपलोड न कर दे।</string>
+    <string name="pk_about_credits">श्रेय और लाइसेंस</string>
+    <string name="pk_about_bitchat">bitchat पर बना</string>
+    <string name="pk_about_bitchat_licence">bitchat प्रोजेक्ट का ब्लूटूथ मेश · GNU GPL v3</string>
 </resources>

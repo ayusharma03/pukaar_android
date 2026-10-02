@@ -114,7 +114,7 @@ fun SosPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space1),
         ) {
-            PukaarIcon(Sym.sos, null, size = 18.dp, tint = s.onSosFill)
+            // Text only: the Material Symbols "sos" glyph is itself the letters SOS.
             Text(stringResource(R.string.pk_sos), style = MaterialTheme.typography.labelLarge, color = s.onSosFill)
         }
     }
@@ -200,8 +200,10 @@ fun PukaarCard(
     padding: Dp = PukaarDimens.space4,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    // Cards in the designs always span the content width.
     Surface(
         modifier = modifier
+            .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         color = color,

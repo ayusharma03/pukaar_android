@@ -114,15 +114,20 @@ fun MapScreen(
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var query by rememberSaveable { mutableStateOf("") }
 
-    val origin = state.me ?: state.places.firstOrNull()?.let { LatLon(it.lat, it.lon) } ?: LatLon(0.0, 0.0)
+    val placesCenter = if (state.places.isEmpty()) null else LatLon(state.places.map { it.lat }.average(), state.places.map { it.lon }.average())
+    // "Outside the downloaded area" (screens.md §7): more than 50 km from every saved place.
+    val outsideArea = state.me != null && state.places.isNotEmpty() &&
+        state.places.minOf { Locations.distanceM(state.me.lat, state.me.lon, it.lat, it.lon) } > 50_000f
+    val me = if (outsideArea) null else state.me
+    val origin = me ?: placesCenter ?: LatLon(0.0, 0.0)
     // Null until the user pans or recentres, so the map follows the first fix instead of jumping on every update.
     var userCenter by remember { mutableStateOf<LatLon?>(null) }
     val center = userCenter ?: origin
-    var metersPerPx by remember { mutableFloatStateOf(3f) }
+    var metersPerPx by remember { mutableFloatStateOf(6f) }
     var size by remember { mutableStateOf(IntSize.Zero) }
 
     val visible = state.places.filter { it.type in layers }
-    val from = state.me ?: center
+    val from = me ?: center
     val nearestShelter = state.places.filter { it.type == PlaceType.Shelter }
         .minByOrNull { Locations.distanceM(from.lat, from.lon, it.lat, it.lon) }
     val selected = state.places.firstOrNull { it.id == selectedId } ?: nearestShelter
@@ -160,7 +165,6 @@ fun MapScreen(
         ) {
             Canvas(Modifier.fillMaxSize()) {
                 // Distance rings every 500 m around the user help judge distance without roads.
-                val me = state.me
                 if (me != null) {
                     val c = toScreen(me)
                     for (r in 1..6) drawCircle(colors.outlineVariant, (r * 500f) / metersPerPx, c, style = Stroke(1.dp.toPx()))
@@ -265,7 +269,10 @@ fun MapScreen(
                 }
             }
             Text(
-                stringResource(if (state.sampleData) R.string.pk_map_sample_note else R.string.pk_map_tiles_note),
+                listOfNotNull(
+                    if (outsideArea) stringResource(R.string.pk_map_outside_area) else null,
+                    stringResource(if (state.sampleData) R.string.pk_map_sample_note else R.string.pk_map_tiles_note),
+                ).joinToString("\n"),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.onSurfaceVariant,
                 modifier = Modifier.clip(MaterialTheme.shapes.extraSmall).background(colors.surface.copy(alpha = 0.85f)).padding(horizontal = 6.dp, vertical = 2.dp),
@@ -280,19 +287,19 @@ fun MapScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 PrimaryButton(
-                    stringResource(R.string.pk_sos), onSos, icon = Sym.sos,
+                    stringResource(R.string.pk_sos), onSos,
                     containerColor = s.sosFill, contentColor = s.onSosFill,
                 )
                 Box(
                     Modifier.size(56.dp).clip(RoundedCornerShape(16.dp)).background(colors.surfaceContainerHigh)
-                        .clickable(enabled = state.me != null, role = Role.Button) { userCenter = null; metersPerPx = 3f },
+                        .clickable(enabled = me != null, role = Role.Button) { userCenter = null; metersPerPx = 6f },
                     contentAlignment = Alignment.Center,
-                ) { PukaarIcon(Sym.myLocation, stringResource(R.string.pk_map_my_location), tint = if (state.me != null) colors.primary else colors.outline) }
+                ) { PukaarIcon(Sym.myLocation, stringResource(R.string.pk_map_my_location), tint = if (me != null) colors.primary else colors.outline) }
             }
             PlaceSheet(
                 place = selected,
                 isNearest = selected?.id == nearestShelter?.id && selectedId == null,
-                from = state.me,
+                from = me,
                 onDirection = onDirection,
                 onCall = onCall,
             )

@@ -187,7 +187,7 @@ private fun HeroCard(sos: ActiveSos) {
     LaunchedEffect(Unit) { while (true) { delay(30_000); now = System.currentTimeMillis() } }
     val time = DateFormat.getTimeFormat(context).format(Date(sos.startedAt))
     val ago = DateUtils.getRelativeTimeSpanString(sos.startedAt, now, DateUtils.MINUTE_IN_MILLIS).toString()
-    PukaarCard(color = hero.colors?.container ?: MaterialTheme.colorScheme.surfaceContainerHigh, contentColor = hero.colors?.onContainer ?: MaterialTheme.colorScheme.onSurface) {
+    PukaarCard(Modifier.fillMaxWidth(), color = hero.colors?.container ?: MaterialTheme.colorScheme.surfaceContainerHigh, contentColor = hero.colors?.onContainer ?: MaterialTheme.colorScheme.onSurface) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space1)) {
             PukaarIcon(hero.icon, null, size = 18.dp)
             Text(stringResource(R.string.pk_sos_sent_at, time, ago), style = MaterialTheme.typography.labelLarge)
@@ -256,7 +256,7 @@ fun stageTitle(stage: SosStage) = when (stage) {
 
 @Composable
 private fun WhatYouSent(sos: ActiveSos) {
-    PukaarCard {
+    PukaarCard(Modifier.fillMaxWidth()) {
         val loc = sos.location
         SentRow(Sym.locationOn, if (loc != null) formatCoords(loc.lat, loc.lon) else stringResource(R.string.pk_sos_no_location),
             loc?.accuracyM?.let { stringResource(R.string.pk_sos_accuracy, it) })
@@ -289,7 +289,7 @@ private fun FamilyList(family: List<FamilyNotice>, onAddContacts: () -> Unit) {
         })
         return
     }
-    PukaarCard(padding = PukaarDimens.space3) {
+    PukaarCard(Modifier.fillMaxWidth(), padding = PukaarDimens.space3) {
         family.forEach { notice ->
             val (icon, text, color) = when (notice.status) {
                 FamilyStatus.SentDirect -> Triple(Sym.check, stringResource(R.string.pk_family_sent_direct), s.confirmed.main)

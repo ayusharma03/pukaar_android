@@ -300,6 +300,7 @@
     <string name="pk_map_show_direction">Show direction</string>
     <string name="pk_map_my_location">My location</string>
     <string name="pk_map_sample_note">Sample places for testing · map not downloaded</string>
+    <string name="pk_map_outside_area">You\'re outside the saved area. Showing its places.</string>
     <string name="pk_map_tiles_note">Map not downloaded · showing saved places</string>
     <string name="pk_dir_n">north</string>
     <string name="pk_dir_ne">north-east</string>

@@ -38,3 +38,7 @@
 -keepclassmembers class * implements android.location.LocationListener {
     public <methods>;
 }
+
+# Pukaar: models saved and sent as JSON with Gson (prefs, places.json, gateway).
+-keep class app.pukaar.data.** { *; }
+-keep class app.pukaar.sos.** { *; }
