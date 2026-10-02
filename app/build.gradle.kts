@@ -10,6 +10,12 @@ val githubReleaseCertSha256 = providers
     .environmentVariable("BITCHAT_GITHUB_RELEASE_CERT_SHA256")
     .orElse(providers.gradleProperty("BITCHAT_GITHUB_RELEASE_CERT_SHA256"))
     .orElse("")
+val pukaarGatewayUrl = providers
+    .environmentVariable("PUKAAR_GATEWAY_URL")
+    .orElse(providers.gradleProperty("PUKAAR_GATEWAY_URL"))
+    .orElse("")
+    .get()
+    .trim()
 val normalizedGithubReleaseCertSha256 = githubReleaseCertSha256.get()
     .replace(":", "")
     .trim()
@@ -37,6 +43,9 @@ android {
             "GITHUB_RELEASE_CERT_SHA256",
             "\"$normalizedGithubReleaseCertSha256\""
         )
+
+        // Pukaar: rescuer server base URL (docs/protocol.md). Empty = gateway off.
+        buildConfigField("String", "PUKAAR_GATEWAY_URL", "\"$pukaarGatewayUrl\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

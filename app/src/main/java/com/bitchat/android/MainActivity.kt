@@ -62,6 +62,8 @@ class MainActivity : OrientationAwareActivity() {
     private lateinit var unifiedMeshService: MeshService
     private val mainViewModel: MainViewModel by viewModels()
     private var pendingMeshForegroundServiceStart = false
+    /** Pukaar screen to open, from a notification, the SOS tile or a widget. */
+    private val pukaarRoute = mutableStateOf<String?>(null)
     private val chatViewModel: ChatViewModel by viewModels { 
         object : ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
@@ -154,16 +156,24 @@ class MainActivity : OrientationAwareActivity() {
             onOnboardingFailed = ::handleOnboardingFailed
         )
         
+        pukaarRoute.value = intent.getStringExtra(app.pukaar.PukaarIntents.EXTRA_ROUTE)
         setContent {
-            PukaarTheme {
+            // Pukaar: theme from Settings, and Pukaar's own onboarding before bitchat's checks.
+            val pukaarSettings by app.pukaar.data.PukaarStore.settings.collectAsState()
+            val pukaarOnboarded by app.pukaar.data.PukaarStore.onboardingDone.collectAsState()
+            PukaarTheme(pukaarSettings.theme) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.background
                 ) { innerPadding ->
-                    OnboardingFlowScreen(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                    )
+                    if (!pukaarOnboarded) {
+                        app.pukaar.ui.screens.onboarding.PukaarOnboarding(onFinished = { checkOnboardingStatus() })
+                    } else {
+                        OnboardingFlowScreen(modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                        )
+                    }
                 }
             }
         }
@@ -189,8 +199,10 @@ class MainActivity : OrientationAwareActivity() {
         }
         
         // Only start onboarding process if we're in the initial CHECKING state
-        // This prevents restarting onboarding on configuration changes
-        if (mainViewModel.onboardingState.value == OnboardingState.CHECKING) {
+        // This prevents restarting onboarding on configuration changes.
+        // Pukaar: wait until Pukaar's own onboarding (which asks for permissions) is done.
+        if (mainViewModel.onboardingState.value == OnboardingState.CHECKING &&
+            app.pukaar.data.PukaarStore.onboardingDone.value) {
             checkOnboardingStatus()
         }
     }
@@ -313,24 +325,13 @@ class MainActivity : OrientationAwareActivity() {
             }
 
             OnboardingState.CHECKING, OnboardingState.INITIALIZING, OnboardingState.COMPLETE -> {
-                // Set up back navigation handling for the chat screen
-                val backCallback = object : OnBackPressedCallback(true) {
-                    override fun handleOnBackPressed() {
-                        // Let ChatViewModel handle navigation state
-                        val handled = chatViewModel.handleBackPressed()
-                        if (!handled) {
-                            // If ChatViewModel doesn't handle it, disable this callback
-                            // and let the system handle it (which will exit the app)
-                            this.isEnabled = false
-                            onBackPressedDispatcher.onBackPressed()
-                            this.isEnabled = true
-                        }
-                    }
-                }
-
-                // Add the callback - this will be automatically removed when the activity is destroyed
-                onBackPressedDispatcher.addCallback(this, backCallback)
-                ChatScreen(viewModel = chatViewModel)
+                // Pukaar replaces bitchat's ChatScreen; its NavHost handles back navigation.
+                val route by pukaarRoute
+                app.pukaar.ui.PukaarNavHost(
+                    chatViewModel = chatViewModel,
+                    pendingRoute = route,
+                    onRouteHandled = { pukaarRoute.value = null },
+                )
             }
             
             OnboardingState.ERROR -> {
@@ -729,7 +730,8 @@ class MainActivity : OrientationAwareActivity() {
         }
 
         com.bitchat.android.service.AppShutdownCoordinator.cancelPendingShutdown()
-        
+        intent.getStringExtra(app.pukaar.PukaarIntents.EXTRA_ROUTE)?.let { pukaarRoute.value = it }
+
         // Handle notification intents when app is already running
         if (mainViewModel.onboardingState.value == OnboardingState.COMPLETE) {
             handleNotificationIntent(intent)

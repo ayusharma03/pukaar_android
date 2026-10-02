@@ -59,6 +59,13 @@
 
     <!-- Haptic feedback permission -->
     <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Pukaar: SOS SMS to emergency contacts (FR-10), one-tap emergency calls (FR-17),
+         and the shake countdown over the lock screen (FR-13). -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
     
     <!-- Battery optimization permission -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
@@ -167,5 +174,53 @@
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
+
+        <!-- Pukaar: SOS countdown over the lock screen (tile, widgets, shake). -->
+        <activity
+            android:name="app.pukaar.system.SosActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="app.pukaar.sos"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.BitchatAndroid" />
+
+        <service
+            android:name="app.pukaar.system.SosTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_stat_pukaar"
+            android:label="@string/pk_sos"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="false" />
+        </service>
+
+        <receiver
+            android:name="app.pukaar.system.SosWidgetSmall"
+            android:exported="true"
+            android:label="@string/pk_widget_small_desc">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/pk_widget_small_info" />
+        </receiver>
+
+        <receiver
+            android:name="app.pukaar.system.SosWidgetMedium"
+            android:exported="true"
+            android:label="@string/pk_widget_medium_desc">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/pk_widget_medium_info" />
+        </receiver>
+
+        <receiver
+            android:name="app.pukaar.sos.SosActionReceiver"
+            android:exported="false" />
     </application>
 </manifest>

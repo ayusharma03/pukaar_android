@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Small 2 x 1 widget (handoff 2y): one big SOS button. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pk_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/pk_widget_bg"
+    android:gravity="center"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/pk_widget_sos"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/pk_widget_sos_pill"
+        android:contentDescription="@string/pk_sos_button_description"
+        android:gravity="center"
+        android:minHeight="48dp"
+        android:text="@string/pk_sos"
+        android:textColor="@color/pk_on_sos_fill"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+</LinearLayout>
