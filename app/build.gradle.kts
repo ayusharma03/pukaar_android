@@ -10,12 +10,17 @@ val githubReleaseCertSha256 = providers
     .environmentVariable("BITCHAT_GITHUB_RELEASE_CERT_SHA256")
     .orElse(providers.gradleProperty("BITCHAT_GITHUB_RELEASE_CERT_SHA256"))
     .orElse("")
-val pukaarGatewayUrl = providers
-    .environmentVariable("PUKAAR_GATEWAY_URL")
-    .orElse(providers.gradleProperty("PUKAAR_GATEWAY_URL"))
+fun pukaarSetting(name: String): String = providers
+    .environmentVariable(name)
+    .orElse(providers.gradleProperty(name))
     .orElse("")
     .get()
     .trim()
+val pukaarGatewayUrl = pukaarSetting("PUKAAR_GATEWAY_URL")
+// Server public keys (base64url, 32 bytes): Ed25519 for signed acks/official messages,
+// X25519 for sealing contact details. See docs/protocol.md.
+val pukaarServerSignKey = pukaarSetting("PUKAAR_SERVER_SIGN_KEY")
+val pukaarServerBoxKey = pukaarSetting("PUKAAR_SERVER_BOX_KEY")
 val normalizedGithubReleaseCertSha256 = githubReleaseCertSha256.get()
     .replace(":", "")
     .trim()
@@ -46,6 +51,8 @@ android {
 
         // Pukaar: rescuer server base URL (docs/protocol.md). Empty = gateway off.
         buildConfigField("String", "PUKAAR_GATEWAY_URL", "\"$pukaarGatewayUrl\"")
+        buildConfigField("String", "PUKAAR_SERVER_SIGN_KEY", "\"$pukaarServerSignKey\"")
+        buildConfigField("String", "PUKAAR_SERVER_BOX_KEY", "\"$pukaarServerBoxKey\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

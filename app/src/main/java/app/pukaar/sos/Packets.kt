@@ -12,6 +12,7 @@ object Packets {
     const val SAFE = "PKSAFE1"
     const val ACK = "PKACK1"
     const val OFFICIAL = "PKOFF1"
+    const val CONTACTS = "PKCT1"
     const val MAX_SOS_BYTES = 200
     private const val MAX_NAME_BYTES = 24
     private val LOCATION_TAG = Regex("""\s*\[loc:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)]\s*$""")
@@ -21,6 +22,7 @@ object Packets {
         content.startsWith("$SAFE|") -> SafePacket.decode(content)
         content.startsWith("$ACK|") -> AckPacket.decode(content)
         content.startsWith("$OFFICIAL|") -> OfficialPacket.decode(content)
+        content.startsWith("$CONTACTS|") -> ContactsPacket.decode(content)
         else -> null
     }
 
@@ -160,29 +162,66 @@ enum class AckStatus(val code: String) {
     }
 }
 
-/** `PKACK1|id|status|time|by`: the server or a rescuer updated an SOS. Broadcast back into the mesh. */
-data class AckPacket(val id: String, val status: AckStatus, val timeSec: Long, val by: String) : PukaarPacket {
-    fun encode() = "${Packets.ACK}|$id|${status.code}|$timeSec|${Packets.clean(by)}"
+/**
+ * `PKACK1|id|status|time|sms|sig|by`: the server updated an SOS. Gateways broadcast it back into the mesh.
+ * `sms` is 1 when the server has texted the family. `sig` is the server's Ed25519 signature over
+ * [signedText], the packet without the `sig` field. Unsigned or badly signed acks must be ignored.
+ */
+data class AckPacket(
+    val id: String,
+    val status: AckStatus,
+    val timeSec: Long,
+    val smsSent: Boolean,
+    val by: String,
+    val sig: String,
+) : PukaarPacket {
+    fun signedText() = "${Packets.ACK}|$id|${status.code}|$timeSec|${if (smsSent) 1 else 0}|${Packets.clean(by)}"
+    fun encode() = "${Packets.ACK}|$id|${status.code}|$timeSec|${if (smsSent) 1 else 0}|$sig|${Packets.clean(by)}"
+    fun verified(key: ByteArray? = ServerCrypto.signKey) = ServerCrypto.verify(signedText(), sig, key)
 
     companion object {
         fun decode(content: String): AckPacket? {
-            val p = content.split("|", limit = 5)
-            if (p.size < 5) return null
+            val p = content.split("|", limit = 7)
+            if (p.size < 7) return null
             val status = AckStatus.fromCode(p[2]) ?: return null
-            return p[3].toLongOrNull()?.let { AckPacket(p[1], status, it, p[4]) }
+            val time = p[3].toLongOrNull() ?: return null
+            return AckPacket(p[1], status, time, p[4] == "1", p[6], p[5])
         }
     }
 }
 
-/** `PKOFF1|id|from|text`: an official broadcast from the dashboard, relayed by a gateway phone. */
-data class OfficialPacket(val id: String, val from: String, val text: String) : PukaarPacket {
-    fun encode() = "${Packets.OFFICIAL}|$id|${Packets.clean(from)}|$text"
+/**
+ * `PKOFF1|id|sig|from|text`: an official broadcast from the dashboard, relayed by a gateway phone.
+ * `sig` signs [signedText] (`PKOFF1|id|from|text`). Unsigned or badly signed ones must be ignored.
+ */
+data class OfficialPacket(val id: String, val from: String, val text: String, val sig: String) : PukaarPacket {
+    fun signedText() = "${Packets.OFFICIAL}|$id|${Packets.clean(from)}|$text"
+    fun encode() = "${Packets.OFFICIAL}|$id|$sig|${Packets.clean(from)}|$text"
+    fun verified(key: ByteArray? = ServerCrypto.signKey) = ServerCrypto.verify(signedText(), sig, key)
 
     companion object {
         fun decode(content: String): OfficialPacket? {
+            val p = content.split("|", limit = 5)
+            if (p.size < 5) return null
+            return OfficialPacket(p[1], p[3], p[4], p[2])
+        }
+    }
+}
+
+/**
+ * `PKCT1|id|mode|data`: who to tell about SOS `id`, so the server can text family even when the
+ * SOS reached it only through other phones (FR-11). `mode` is `e` when `data` is sealed to the
+ * server's key ([ServerCrypto.seal]); `p` when no server key is built in and `data` is plain
+ * base64url JSON with only the phone numbers. See docs/protocol.md.
+ */
+data class ContactsPacket(val id: String, val encrypted: Boolean, val data: String) : PukaarPacket {
+    fun encode() = "${Packets.CONTACTS}|$id|${if (encrypted) "e" else "p"}|$data"
+
+    companion object {
+        fun decode(content: String): ContactsPacket? {
             val p = content.split("|", limit = 4)
-            if (p.size < 4) return null
-            return OfficialPacket(p[1], p[2], p[3])
+            if (p.size < 4 || (p[2] != "e" && p[2] != "p")) return null
+            return ContactsPacket(p[1], p[2] == "e", p[3])
         }
     }
 }

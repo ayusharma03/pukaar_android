@@ -76,15 +76,15 @@ class PacketsTest {
 
     @Test
     fun `ack safe and official packets round trip`() {
-        val ack = AckPacket("a1b2c3d4", AckStatus.Attending, 1_790_000_100, "District Control Room, Darbhanga")
-        assertEquals("PKACK1|a1b2c3d4|A|1790000100|District Control Room, Darbhanga", ack.encode())
+        val ack = AckPacket("a1b2c3d4", AckStatus.Attending, 1_790_000_100, smsSent = true, by = "District Control Room, Darbhanga", sig = "SIG")
+        assertEquals("PKACK1|a1b2c3d4|A|1790000100|1|SIG|District Control Room, Darbhanga", ack.encode())
         assertEquals(ack, Packets.parse(ack.encode()))
 
         val safe = SafePacket("a1b2c3d4", 1_790_000_200)
         assertEquals("PKSAFE1|a1b2c3d4|1790000200", safe.encode())
         assertEquals(safe, Packets.parse(safe.encode()))
 
-        val official = OfficialPacket("b7", "District Control Room", "Boats are going to Rampur school | from 4 pm.")
+        val official = OfficialPacket("b7", "District Control Room", "Boats are going to Rampur school | from 4 pm.", "SIG")
         assertEquals(official, Packets.parse(official.encode()))
     }
 

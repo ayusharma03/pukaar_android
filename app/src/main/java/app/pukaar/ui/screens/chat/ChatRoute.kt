@@ -16,6 +16,7 @@ import app.pukaar.device.Locations
 import app.pukaar.gateway.Gateway
 import app.pukaar.model.DeliveryStatus
 import app.pukaar.sos.AckPacket
+import app.pukaar.sos.ContactsPacket
 import app.pukaar.sos.ActiveSos
 import app.pukaar.sos.MeshBridge
 import app.pukaar.sos.OfficialPacket
@@ -107,8 +108,11 @@ internal fun buildChatItems(
                 }
             }
             is SafePacket -> out += ChatItem.Safe("safe-${packet.id}", namesBySos[packet.id] ?: msg.sender, packet.timeSec * 1000)
-            is OfficialPacket -> officials.getOrPut(packet.id) { ChatItem.Official("off-${packet.id}", packet.from, packet.text, msg.timestamp.time) }
-            is AckPacket -> Unit
+            // Forged "official" messages are dropped: only the server's signature counts.
+            is OfficialPacket -> if (packet.verified()) {
+                officials.getOrPut(packet.id) { ChatItem.Official("off-${packet.id}", packet.from, packet.text, msg.timestamp.time) }
+            }
+            is AckPacket, is ContactsPacket -> Unit
             null -> {
                 val (text, loc) = Packets.splitLocation(msg.content)
                 val delivery: DeliveryStatus? = if (!own) null else when {
@@ -145,5 +149,5 @@ internal fun buildChatItems(
 fun unreadCount(messages: List<BitchatMessage>, seenAt: Long, myPeer: String?, nickname: String): Int =
     messages.count { m ->
         m.timestamp.time > seenAt && m.sender != "system" && m.senderPeerID != myPeer && m.sender != nickname &&
-            Packets.parse(m.content).let { it == null || it is SosPacket || it is OfficialPacket }
+            Packets.parse(m.content).let { it == null || it is SosPacket || (it is OfficialPacket && it.verified()) }
     }

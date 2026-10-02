@@ -78,7 +78,7 @@ object PukaarRuntime {
                     if (!notify) continue
                     when (packet) {
                         is SosPacket -> if (packet.id !in own) SosNotifier.showNearbySos(context, packet, sosSummary(context, packet))
-                        is OfficialPacket -> SosNotifier.showOfficial(context, packet)
+                        is OfficialPacket -> if (packet.verified()) SosNotifier.showOfficial(context, packet)
                         else -> Unit
                     }
                 }

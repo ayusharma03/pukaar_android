@@ -144,6 +144,7 @@ object SosManager {
     fun updateDetails(details: SosDetails) {
         scope.launch {
             val loc = Locations.current(appContext, 4_000)
+            cachedContacts = null
             update { it.copy(seq = it.seq + 1, details = details, location = loc?.toSosLocation() ?: it.location, battery = DeviceStatus.batteryNow()) }
             sendOverMesh(force = true)
             uploadDirect(force = true)
@@ -182,17 +183,22 @@ object SosManager {
         if (packet !is AckPacket) return
         val sos = _active.value ?: return
         if (packet.id != sos.id) return
-        applyServerStatus(packet.status, packet.by, packet.timeSec * 1000)
+        // Only the server's signature makes an ack real; anyone on the mesh could forge one.
+        if (!packet.verified()) return
+        applyServerStatus(packet.status, packet.by, packet.timeSec * 1000, packet.smsSent)
     }
 
-    private fun applyServerStatus(status: AckStatus, by: String, at: Long) {
+    private fun applyServerStatus(status: AckStatus, by: String, at: Long, smsSent: Boolean = false) {
         val stage = when (status) {
             AckStatus.Notified -> SosStage.HelpNotified
             AckStatus.Attending -> SosStage.RescuerAttending
             AckStatus.Resolved -> SosStage.Resolved
         }
         scope.launch {
-            val changed = update { sos ->
+            val changed = update { current ->
+                val sos = if (smsSent) current.copy(family = current.family.map {
+                    if (it.status != FamilyStatus.SentDirect) it.copy(status = FamilyStatus.SentByServer) else it
+                }) else current
                 if (stage.ordinal <= sos.stage.ordinal) sos
                 else sos.copy(
                     stage = stage,
@@ -225,6 +231,8 @@ object SosManager {
         if (sos.closed) return
         if (!force && System.currentTimeMillis() - sos.lastMeshSendAt < 10_000) return
         val sent = MeshBridge.broadcast(appContext, sos.toPacket().encode())
+        // Who to tell travels with the SOS, so the server can text family whichever phone uploads it.
+        if (sent) contactsPacket(sos)?.let { MeshBridge.broadcast(appContext, it.encode()) }
         val peers = AppStateStore.directPeers.value
         val now = System.currentTimeMillis()
         val updated = update { s ->
@@ -270,13 +278,37 @@ object SosManager {
         val result = Gateway.uploadSos(sos.toPacket(), via = "direct", relayedBy = null, profile = PukaarStore.profile.value, contacts = PukaarStore.contacts.value) ?: return
         lastUploadId = sos.id
         lastUploadSeq = sos.seq
-        if (result.smsSent) {
-            update { s -> s.copy(family = s.family.map { if (it.status != FamilyStatus.SentDirect) it.copy(status = FamilyStatus.SentByServer) else it }) }
-        }
-        applyServerStatus(result.status, result.by, System.currentTimeMillis())
+        applyServerStatus(result.status, result.by, System.currentTimeMillis(), result.smsSent)
     }
 
     // MARK: helpers
+
+    private var cachedContacts: Pair<String, ContactsPacket?>? = null
+
+    /**
+     * The contacts packet for [sos]: sealed to the server's key when one is built in, so relaying
+     * phones can't read it. Without a key, only the phone numbers go, in plain form (docs/protocol.md).
+     */
+    private fun contactsPacket(sos: ActiveSos): ContactsPacket? {
+        cachedContacts?.let { (id, packet) -> if (id == sos.id) return packet }
+        val profile = PukaarStore.profile.value
+        val contacts = PukaarStore.contacts.value.map { mapOf("name" to it.name, "phone" to it.phone) }
+        val packet = if (contacts.isEmpty()) null else {
+            val key = ServerCrypto.boxKey
+            if (key != null) {
+                val json = gson.toJson(mapOf(
+                    "name" to profile.name, "phone" to profile.phone, "bloodGroup" to profile.bloodGroup,
+                    "medicalNotes" to profile.medicalNotes, "contacts" to contacts,
+                ))
+                ContactsPacket(sos.id, encrypted = true, data = ServerCrypto.seal(json.toByteArray(Charsets.UTF_8), key))
+            } else {
+                val json = gson.toJson(mapOf("name" to profile.name, "phone" to profile.phone, "contacts" to contacts))
+                ContactsPacket(sos.id, encrypted = false, data = ServerCrypto.encode(json.toByteArray(Charsets.UTF_8)))
+            }
+        }
+        cachedContacts = sos.id to packet
+        return packet
+    }
 
     private fun ActiveSos.toPacket() = SosPacket(
         id = id,

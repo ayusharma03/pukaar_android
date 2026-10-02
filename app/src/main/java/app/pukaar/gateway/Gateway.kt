@@ -7,6 +7,7 @@ import app.pukaar.data.Profile
 import app.pukaar.device.DeviceStatus
 import app.pukaar.sos.AckPacket
 import app.pukaar.sos.AckStatus
+import app.pukaar.sos.ContactsPacket
 import app.pukaar.sos.MeshBridge
 import app.pukaar.sos.OfficialPacket
 import app.pukaar.sos.Packets
@@ -60,6 +61,7 @@ object Gateway {
 
     private val uploadedSos = mutableMapOf<String, Int>()      // others' SOS id → highest seq uploaded
     private val uploadedSafe = mutableSetOf<String>()
+    private val uploadedContacts = mutableSetOf<String>()
     private val knownStatus = mutableMapOf<String, AckStatus>() // others' SOS id → last status broadcast
     private val relayedOfficial = mutableSetOf<String>()
     private val helpedSenders = mutableMapOf<String, Long>()     // sender → last upload time
@@ -102,6 +104,9 @@ object Gateway {
                 is SafePacket -> if (packet.id !in ownIds && packet.id !in uploadedSafe) {
                     if (uploadSafe(packet)) uploadedSafe += packet.id
                 }
+                is ContactsPacket -> if (packet.id !in ownIds && packet.id !in uploadedContacts) {
+                    if (uploadContacts(packet)) uploadedContacts += packet.id
+                }
                 null -> if (msg.id !in _uploadedMessageIds.value) chat += msg
                 else -> Unit
             }
@@ -115,6 +120,8 @@ object Gateway {
         val othersIds = uploadedSos.keys.toList()
         if (othersIds.isNotEmpty()) {
             for (ack in pollStatus(othersIds)) {
+                // Relay only what the server really signed; phones drop anything else anyway.
+                if (!ack.verified()) continue
                 if (knownStatus[ack.id] != ack.status) {
                     knownStatus[ack.id] = ack.status
                     MeshBridge.broadcast(context, ack.encode())
@@ -123,6 +130,7 @@ object Gateway {
         }
 
         for (official in fetchBroadcasts()) {
+            if (!official.verified()) continue
             if (relayedOfficial.add(official.id)) MeshBridge.broadcast(context, official.encode())
         }
     }
@@ -177,6 +185,10 @@ object Gateway {
         }.getOrDefault(SosServerStatus(AckStatus.Notified, "", false))
     }
 
+    /** POST /v1/contacts: who to text for an SOS, sealed to the server's key (or plain if none is built in). */
+    private suspend fun uploadContacts(packet: ContactsPacket): Boolean =
+        post("/v1/contacts", gson.toJson(mapOf("id" to packet.id, "encrypted" to packet.encrypted, "data" to packet.data))) != null
+
     suspend fun uploadSafe(packet: SafePacket): Boolean =
         post("/v1/safe", gson.toJson(mapOf("id" to packet.id, "time" to packet.timeSec))) != null
 
@@ -202,7 +214,14 @@ object Gateway {
             gson.fromJson(response, JsonObject::class.java).getAsJsonArray("statuses").mapNotNull { el ->
                 val o = el.asJsonObject
                 val status = statusFromName(o.get("status")?.asString) ?: return@mapNotNull null
-                AckPacket(o.get("id").asString, status, o.get("time")?.asLong ?: (System.currentTimeMillis() / 1000), o.get("by")?.asString.orEmpty())
+                AckPacket(
+                    id = o.get("id").asString,
+                    status = status,
+                    timeSec = o.get("time")?.asLong ?: return@mapNotNull null,
+                    smsSent = o.get("smsSent")?.asBoolean ?: false,
+                    by = o.get("by")?.asString.orEmpty(),
+                    sig = o.get("sig")?.asString.orEmpty(),
+                )
             }
         }.getOrDefault(emptyList())
     }
@@ -215,7 +234,7 @@ object Gateway {
             items.map { el ->
                 val o = el.asJsonObject
                 o.get("time")?.asLong?.let { t -> if (t > broadcastsSince) broadcastsSince = t }
-                OfficialPacket(o.get("id").asString, o.get("from")?.asString.orEmpty(), o.get("text")?.asString.orEmpty())
+                OfficialPacket(o.get("id").asString, o.get("from")?.asString.orEmpty(), o.get("text")?.asString.orEmpty(), o.get("sig")?.asString.orEmpty())
             }
         }.getOrDefault(emptyList())
     }
