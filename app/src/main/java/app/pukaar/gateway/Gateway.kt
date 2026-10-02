@@ -66,8 +66,23 @@ object Gateway {
     private val relayedOfficial = mutableSetOf<String>()
     private val helpedSenders = mutableMapOf<String, Long>()     // sender → last upload time
     private var broadcastsSince = System.currentTimeMillis() / 1000
+    private var activeOwnSosId: () -> String? = { null }
+    private var onOwnAck: (AckPacket) -> Unit = {}
 
-    fun start(context: Context, scope: CoroutineScope, ownSosIds: () -> Set<String>) {
+    /**
+     * @param ownSosIds every SOS this phone has sent (never re-uploaded as someone else's)
+     * @param activeOwnSosId this phone's open SOS, whose status is polled while online
+     * @param onOwnAck signed status updates for that SOS
+     */
+    fun start(
+        context: Context,
+        scope: CoroutineScope,
+        ownSosIds: () -> Set<String>,
+        activeOwnSosId: () -> String? = { null },
+        onOwnAck: (AckPacket) -> Unit = {},
+    ) {
+        this.activeOwnSosId = activeOwnSosId
+        this.onOwnAck = onOwnAck
         if (!configured) {
             Log.i(TAG, "No PUKAAR_GATEWAY_URL set; gateway off")
             return
@@ -118,10 +133,16 @@ object Gateway {
 
         // Status changes for SOS this phone relayed go back into the mesh so the sender learns.
         val othersIds = uploadedSos.keys.toList()
-        if (othersIds.isNotEmpty()) {
-            for (ack in pollStatus(othersIds)) {
+        val ownId = activeOwnSosId()
+        val pollIds = othersIds + listOfNotNull(ownId)
+        if (pollIds.isNotEmpty()) {
+            for (ack in pollStatus(pollIds)) {
                 // Relay only what the server really signed; phones drop anything else anyway.
                 if (!ack.verified()) continue
+                if (ack.id == ownId) {
+                    onOwnAck(ack)
+                    continue
+                }
                 if (knownStatus[ack.id] != ack.status) {
                     knownStatus[ack.id] = ack.status
                     MeshBridge.broadcast(context, ack.encode())
@@ -249,16 +270,16 @@ object Gateway {
     private suspend fun post(path: String, body: String): String? = withContext(Dispatchers.IO) {
         runCatching {
             http.newCall(Request.Builder().url(baseUrl + path).post(body.toRequestBody(json)).build()).execute().use { r ->
-                if (r.isSuccessful) r.body.string().orEmpty() else null
+                if (r.isSuccessful) r.body.string().orEmpty() else null.also { Log.w(TAG, "POST $path -> HTTP ${r.code}") }
             }
-        }.getOrNull()
+        }.onFailure { Log.w(TAG, "POST $path failed: ${it.javaClass.simpleName}: ${it.message}") }.getOrNull()
     }
 
     private suspend fun get(path: String): String? = withContext(Dispatchers.IO) {
         runCatching {
             http.newCall(Request.Builder().url(baseUrl + path).get().build()).execute().use { r ->
-                if (r.isSuccessful) r.body.string() else null
+                if (r.isSuccessful) r.body.string() else null.also { Log.w(TAG, "GET $path -> HTTP ${r.code}") }
             }
-        }.getOrNull()
+        }.onFailure { Log.w(TAG, "GET $path failed: ${it.javaClass.simpleName}: ${it.message}") }.getOrNull()
     }
 }

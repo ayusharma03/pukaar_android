@@ -49,7 +49,12 @@ object PukaarRuntime {
         SosNotifier.ensureChannels(app)
         DeviceStatus.start(app, scope)
         SosManager.init(app, scope)
-        Gateway.start(app, scope) { SosManager.ownIds }
+        Gateway.start(
+            app, scope,
+            ownSosIds = { SosManager.ownIds },
+            activeOwnSosId = { SosManager.active.value?.takeIf { !it.closed }?.id },
+            onOwnAck = { SosManager.onPacket(it) },
+        )
         ShakeTrigger.start(app, scope)
         watchPackets(app)
         ChatOutbox.start(app, scope)

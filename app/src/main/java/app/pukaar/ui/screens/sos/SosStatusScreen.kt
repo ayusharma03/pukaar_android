@@ -201,7 +201,8 @@ private fun HeroCard(sos: ActiveSos) {
 @Composable
 private fun hopNodes(sos: ActiveSos): List<HopNode> {
     val s = MaterialTheme.status
-    val relayed = sos.relayPeers > 0 || sos.stage.ordinal >= SosStage.Relayed.ordinal
+    // Lit only if nearby phones really took it; a direct upload skips the mesh.
+    val relayed = sos.relayPeers > 0
     val server = sos.stage.ordinal >= SosStage.HelpNotified.ordinal
     val meshLabel = if (sos.relayPeers > 0) pluralStringResource(R.plurals.pk_phones_short, sos.relayPeers, sos.relayPeers)
     else stringResource(R.string.pk_sos_hop_nearby)

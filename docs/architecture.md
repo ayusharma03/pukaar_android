@@ -76,6 +76,6 @@ The engine runs in the app process, which bitchat's foreground service keeps ali
 
 ## Testing
 
-- `app/src/test/java/app/pukaar/`: packet codec, size limit, signatures and sealing (with vectors from the Node reference in `docs/server-reference/`).
+- `app/src/test/java/app/pukaar/`: packet codec, size limit, signatures and sealing (with vectors from the Node reference in `server/functions/src/`).
 - UI: every screen has dark and light `@Preview`s.
 - Bluetooth, SMS, shake and the lock-screen flows need real phones.

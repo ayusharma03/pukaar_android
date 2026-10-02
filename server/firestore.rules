@@ -1,0 +1,11 @@
+rules_version = '2';
+// Only the Cloud Function (admin SDK) writes. SOS records hold phone numbers and medical notes,
+// so reads are limited to signed-in dashboard staff with the role claim viewer or responder (FR-28).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read: if request.auth != null && request.auth.token.role in ['viewer', 'responder'];
+      allow write: if false;
+    }
+  }
+}

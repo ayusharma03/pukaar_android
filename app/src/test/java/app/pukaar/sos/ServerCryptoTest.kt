@@ -9,7 +9,7 @@ import org.junit.Test
 import java.security.SecureRandom
 
 /**
- * Golden vectors made with docs/server-reference/pukaar-crypto.js (Node), using test-only keys
+ * Golden vectors made with server/functions/src/pukaar-crypto.js (Node), using test-only keys
  * built from fixed bytes (sign seed 0x01…, box key 0x02…, ephemeral 0x03…). They prove the app and a
  * Node server agree on signatures and sealed contacts.
  */

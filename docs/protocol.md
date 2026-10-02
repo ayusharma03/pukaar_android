@@ -75,7 +75,7 @@ The server holds two private keys. The app is built with the matching public key
 | `PUKAAR_SERVER_SIGN_KEY` | Ed25519 public key | Verifying `sig` on Ack and Official packets. With no key, every Ack and Official packet from the mesh is rejected. |
 | `PUKAAR_SERVER_BOX_KEY` | X25519 public key | Sealing Contacts packets: X25519 with a fresh ephemeral key, HKDF-SHA256 (salt = ephemeral public ‖ server public, info `pukaar-contacts-v1`), ChaCha20-Poly1305 with a zero nonce and AAD `PKCT1`. `data` = base64url(ephemeral public ‖ ciphertext ‖ tag). |
 
-`docs/server-reference/pukaar-crypto.js` (Node, no dependencies) generates the keys (`node pukaar-crypto.js keygen`), builds the signed text, signs it, and opens Contacts packets. Its output is checked against the app in `ServerCryptoTest`. Put the private keys in the server's secret store, never in the repo or the app.
+`server/functions/src/pukaar-crypto.js` (Node, no dependencies) generates the keys (`node pukaar-crypto.js keygen`), builds the signed text, signs it, and opens Contacts packets. Its output is checked against the app in `ServerCryptoTest`. Put the private keys in the server's secret store, never in the repo or the app.
 
 Direct uploads from the sender's own phone travel over HTTPS, so those responses are trusted without a signature.
 
