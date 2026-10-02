@@ -1,6 +1,9 @@
 package app.pukaar.ui.screens.settings
 
 import android.content.Context
+import app.pukaar.map.OfflineArea
+import app.pukaar.map.OfflineMaps
+import app.pukaar.map.pickOfflineArea
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -76,29 +79,56 @@ import app.pukaar.ui.theme.Sym
 import com.bitchat.android.R
 import com.bitchat.android.ui.LanguagePreferenceManager
 
-/** The offline area as it stands: places and guides ship with the app; map tiles aren't available yet. */
-fun offlineRegion(context: Context): OfflineRegion {
-    val places = Places.load(context)
-    return OfflineRegion(
-        id = "bundled",
-        name = places.region.ifBlank { context.getString(R.string.pk_offline_unknown_region) },
-        items = listOf(
-            app.pukaar.data.OfflineItem(OfflineItemKind.Map, 142, saved = false),
-            app.pukaar.data.OfflineItem(OfflineItemKind.Places, 3, saved = places.places.isNotEmpty()),
-            app.pukaar.data.OfflineItem(OfflineItemKind.Guides, 8, saved = true),
-        ),
-    )
+/** The area to save offline, picked once per screen (around the user, or the saved places). */
+@Composable
+fun rememberOfflineArea(): OfflineArea? {
+    val context = LocalContext.current
+    val area by produceState<OfflineArea?>(null) { value = pickOfflineArea(context) }
+    return area
 }
 
-/** Dialog shown wherever a map download is offered: honest about what this build can do. */
+/**
+ * Status of the offline map (FR-19, FR-22): saved (with delete), downloading (with progress),
+ * failed, or not saved (with Download, which needs internet).
+ */
 @Composable
-fun MapDownloadUnavailableDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.pk_offline_unavailable_title)) },
-        text = { Text(stringResource(R.string.pk_offline_unavailable_body)) },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.pk_ok)) } },
-    )
+fun OfflineMapRow(area: OfflineArea?, state: OfflineMaps.State, internet: Boolean, showDelete: Boolean = true) {
+    val context = LocalContext.current
+    when (state) {
+        is OfflineMaps.State.Saved -> ListRow(
+            state.name.ifBlank { area?.name ?: stringResource(R.string.pk_offline_unknown_region) },
+            subtitle = stringResource(
+                R.string.pk_offline_saved_detail,
+                (state.bytes / 1_048_576).toInt().coerceAtLeast(1),
+                android.text.format.DateFormat.getMediumDateFormat(context).format(java.util.Date(state.savedAt.takeIf { it > 0 } ?: System.currentTimeMillis())),
+            ),
+            icon = Sym.map,
+            trailing = {
+                if (showDelete) androidx.compose.material3.IconButton(onClick = { OfflineMaps.delete(context) }) {
+                    PukaarIcon(Sym.delete, stringResource(R.string.pk_offline_delete), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+        )
+        is OfflineMaps.State.Downloading -> Column(Modifier.padding(horizontal = PukaarDimens.space4, vertical = PukaarDimens.space2), verticalArrangement = Arrangement.spacedBy(PukaarDimens.space2)) {
+            Text(area?.name ?: "", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.pk_offline_downloading, state.percent), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            androidx.compose.material3.LinearProgressIndicator(progress = { state.percent / 100f }, modifier = Modifier.fillMaxWidth())
+        }
+        else -> ListRow(
+            area?.name ?: stringResource(R.string.pk_offline_unknown_region),
+            subtitle = when {
+                state is OfflineMaps.State.Failed -> stringResource(R.string.pk_offline_failed)
+                !internet -> stringResource(R.string.pk_settings_offline_needs_internet)
+                else -> stringResource(R.string.pk_offline_not_saved, area?.estimateMb ?: 0)
+            },
+            icon = Sym.map,
+            trailing = {
+                TonalButton(stringResource(R.string.pk_offline_download), {
+                    area?.let { OfflineMaps.download(context, it.bounds, it.name) }
+                }, enabled = internet && area != null)
+            },
+        )
+    }
 }
 
 fun currentLanguageIsHindi(): Boolean = LanguagePreferenceManager.currentLanguageTag().startsWith("hi")
@@ -117,7 +147,9 @@ fun SettingsRoute(
     val profile by PukaarStore.profile.collectAsState()
     val contacts by PukaarStore.contacts.collectAsState()
     var dialog by remember { mutableStateOf<String?>(null) }
-    val region = remember { offlineRegion(context) }
+    val area = rememberOfflineArea()
+    val mapState by OfflineMaps.state.collectAsState()
+    val internet by app.pukaar.device.DeviceStatus.internet.collectAsState()
 
     Column(Modifier.fillMaxSize()) {
         PukaarTopBar(stringResource(R.string.pk_settings_title), onBack = onBack)
@@ -176,18 +208,8 @@ fun SettingsRoute(
             )
 
             Group(stringResource(R.string.pk_settings_offline))
-            ListRow(
-                region.name,
-                subtitle = stringResource(R.string.pk_settings_offline_saved, region.totalMb - region.missingMb),
-                icon = Sym.map,
-            )
-            ListRow(
-                stringResource(R.string.pk_settings_offline_download),
-                subtitle = stringResource(R.string.pk_settings_offline_needs_internet),
-                icon = Sym.addLocationAlt,
-                onClick = { dialog = "download" },
-                trailing = { Chevron() },
-            )
+            OfflineMapRow(area, mapState, internet)
+            ListRow(stringResource(R.string.pk_settings_offline_bundled), subtitle = stringResource(R.string.pk_settings_offline_bundled_hint), icon = Sym.downloadDone)
 
             Group(stringResource(R.string.pk_settings_radio))
             ListRow(
@@ -242,7 +264,6 @@ fun SettingsRoute(
     when (dialog) {
         "language" -> LanguageDialog { dialog = null }
         "countdown" -> CountdownDialog(settings.countdownSeconds, { dialog = null }) { s -> PukaarStore.updateSettings { it.copy(countdownSeconds = s) } }
-        "download" -> MapDownloadUnavailableDialog { dialog = null }
         "radio" -> RadioUnavailableDialog { dialog = null }
         "district" -> DistrictDialog(settings.districtControlNumber, { dialog = null }) { n -> PukaarStore.updateSettings { it.copy(districtControlNumber = n) } }
     }

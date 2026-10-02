@@ -298,9 +298,9 @@
     <string name="pk_map_no_places">इस इलाके की कोई जगह अभी सेव नहीं है।</string>
     <string name="pk_map_show_direction">दिशा दिखाएँ</string>
     <string name="pk_map_my_location">मेरी लोकेशन</string>
-    <string name="pk_map_sample_note">टेस्ट के लिए नमूना जगहें · नक्शा डाउनलोड नहीं</string>
+    <string name="pk_map_sample_note">टेस्ट के लिए नमूना जगहें</string>
     <string name="pk_map_outside_area">आप सेव किए गए इलाके से बाहर हैं। उसकी जगहें दिख रही हैं।</string>
-    <string name="pk_map_tiles_note">नक्शा डाउनलोड नहीं · सेव की गई जगहें दिख रही हैं</string>
+    <string name="pk_map_tiles_note">नक्शा ऑफ़लाइन के लिए सेव नहीं है</string>
     <string name="pk_dir_n">उत्तर</string>
     <string name="pk_dir_ne">उत्तर-पूर्व</string>
     <string name="pk_dir_e">पूर्व</string>
@@ -404,8 +404,6 @@
     <string name="pk_settings_tile_widget">क्विक सेटिंग टाइल और विजेट</string>
     <string name="pk_settings_tile_widget_hint">इन्हें कैसे जोड़ें</string>
     <string name="pk_settings_offline">ऑफ़लाइन डेटा</string>
-    <string name="pk_settings_offline_saved">इस फ़ोन पर %1$d MB सेव · नक्शा डाउनलोड नहीं</string>
-    <string name="pk_settings_offline_download">दूसरा इलाका डाउनलोड करें</string>
     <string name="pk_settings_offline_needs_internet">इंटरनेट चाहिए</string>
     <string name="pk_settings_radio">रेडियो डिवाइस</string>
     <string name="pk_settings_radio_none">कोई रेडियो नहीं जुड़ा</string>
@@ -426,8 +424,6 @@
     <string name="pk_settings_about">पुकार के बारे में</string>
     <string name="pk_settings_about_hint">वर्ज़न %1$s · श्रेय और ओपन-सोर्स लाइसेंस</string>
     <string name="pk_offline_unknown_region">आपका इलाका</string>
-    <string name="pk_offline_unavailable_title">नक्शा डाउनलोड अभी तैयार नहीं</string>
-    <string name="pk_offline_unavailable_body">इस वर्ज़न में ऑफ़लाइन नक्शा डाउनलोड नहीं हो सकता। शरण स्थल, अस्पताल, पुलिस और सुरक्षा गाइड पहले से इस फ़ोन पर सेव हैं और बिना नेटवर्क के चलते हैं।</string>
 
     <!-- Profile and contacts (2d, 2e, 2w) -->
     <string name="pk_profile_name">नाम</string>
@@ -506,7 +502,7 @@
     <string name="pk_onb_offline_title">अपना इलाका ऑफ़लाइन के लिए सेव करें</string>
     <string name="pk_onb_offline_body">इंटरनेट रहते अभी डाउनलोड करें। बाद में बिना नेटवर्क के चलेगा।</string>
     <string name="pk_onb_offline_detected">आपकी लोकेशन से पता चला</string>
-    <string name="pk_onb_offline_download">%1$d MB डाउनलोड करें</string>
+    <string name="pk_onb_offline_download">लगभग %1$d MB डाउनलोड करें</string>
     <string name="pk_onb_offline_wifi">आप वाई-फ़ाई पर हैं। मोबाइल डेटा ख़र्च नहीं होगा।</string>
     <string name="pk_offline_map">ऑफ़लाइन नक्शा</string>
     <string name="pk_offline_map_detail">सड़कें, नदियाँ, गाँव</string>
@@ -574,4 +570,19 @@
     <!-- Full-screen alert permission (Android 14+). NEEDS REVIEW by a native speaker. -->
     <string name="pk_setup_fullscreen_title">लॉक स्क्रीन पर SOS की अनुमति दें</string>
     <string name="pk_setup_fullscreen_body">ताकि लॉक फ़ोन को हिलाने पर SOS की उलटी गिनती सीधे खुल जाए। इसके बिना पहले एक सूचना दबानी होगी।</string>
+
+    <!-- Offline map (MapLibre). NEEDS REVIEW by a native speaker. -->
+    <string name="pk_map_attribution">© OpenStreetMap योगदानकर्ता · OpenFreeMap</string>
+    <string name="pk_offline_area_here">आपका इलाका</string>
+    <string name="pk_offline_downloading">डाउनलोड हो रहा है… %1$d%%</string>
+    <string name="pk_offline_saved_detail">%1$d MB · %2$s को सेव</string>
+    <string name="pk_offline_not_saved">नक्शा सेव नहीं · लगभग %1$d MB</string>
+    <string name="pk_offline_about_mb">लगभग %1$d MB</string>
+    <string name="pk_offline_download">डाउनलोड करें</string>
+    <string name="pk_offline_failed">डाउनलोड पूरा नहीं हुआ। इंटरनेट मिलने पर फिर कोशिश करें।</string>
+    <string name="pk_offline_delete">ऑफ़लाइन नक्शा हटाएँ</string>
+    <string name="pk_settings_offline_bundled">शरण स्थल, अस्पताल, पुलिस और गाइड</string>
+    <string name="pk_settings_offline_bundled_hint">ऐप के साथ सेव</string>
+    <string name="pk_onb_offline_continue_bg">डाउनलोड होते हुए आगे बढ़ें</string>
+    <string name="pk_onb_offline_no_internet">अभी इंटरनेट नहीं है। नक्शा बाद में सेटिंग से डाउनलोड कर सकते हैं।</string>
 </resources>

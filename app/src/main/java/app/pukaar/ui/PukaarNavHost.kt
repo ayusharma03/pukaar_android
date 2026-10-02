@@ -266,6 +266,7 @@ private fun MapRoute(nav: NavHostController) {
     val context = LocalContext.current
     val set = remember { Places.load(context) }
     val connection by DeviceStatus.connection.collectAsState()
+    val mapState by app.pukaar.map.OfflineMaps.state.collectAsState()
     var me by remember { mutableStateOf<Location?>(null) }
     LaunchedEffect(Unit) { Locations.updates(context, 5_000).collect { me = it } }
     MapScreen(
@@ -276,6 +277,7 @@ private fun MapRoute(nav: NavHostController) {
             me = me?.let { LatLon(it.latitude, it.longitude) },
             meAccuracyM = me?.takeIf { it.hasAccuracy() }?.accuracy,
             connection = connection,
+            mapSaved = mapState is app.pukaar.map.OfflineMaps.State.Saved,
         ),
         onSos = { nav.navigate(Routes.SOS_COUNTDOWN) },
         onNetwork = { nav.navigate(Routes.NETWORK) },

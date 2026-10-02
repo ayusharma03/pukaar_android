@@ -200,6 +200,9 @@ dependencies {
     // Google Play Services Location
     implementation(libs.gms.location)
 
+    // Pukaar: offline map (MapLibre Native)
+    implementation(libs.maplibre.android)
+
     // Security preferences
     implementation(libs.androidx.security.crypto)
     

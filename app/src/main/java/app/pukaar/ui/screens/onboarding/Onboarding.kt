@@ -56,7 +56,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import app.pukaar.data.OfflineItemKind
 import app.pukaar.data.PukaarStore
 import app.pukaar.ui.components.InfoBox
 import app.pukaar.ui.components.OutlineButton
@@ -69,10 +68,10 @@ import app.pukaar.ui.components.StepDots
 import app.pukaar.ui.components.Tag
 import app.pukaar.ui.components.TonalButton
 import app.pukaar.ui.screens.settings.ContactsEditor
-import app.pukaar.ui.screens.settings.MapDownloadUnavailableDialog
 import app.pukaar.ui.screens.settings.ProfileForm
 import app.pukaar.ui.screens.settings.SosSetupContent
-import app.pukaar.ui.screens.settings.offlineRegion
+import app.pukaar.ui.screens.settings.rememberOfflineArea
+import app.pukaar.map.OfflineMaps
 import app.pukaar.ui.screens.sos.SosCountdownRoute
 import app.pukaar.ui.theme.PukaarDimens
 import app.pukaar.ui.theme.PukaarIcon
@@ -354,16 +353,27 @@ private fun ContactsStep(onBack: () -> Unit, onNext: () -> Unit) {
 @Composable
 private fun OfflineStep(onBack: () -> Unit, onNext: () -> Unit) {
     val context = LocalContext.current
-    val region = remember { offlineRegion(context) }
+    val area = rememberOfflineArea()
+    val mapState by OfflineMaps.state.collectAsState()
+    val internet by app.pukaar.device.DeviceStatus.internet.collectAsState()
     val onWifi = remember { isOnWifi(context) }
-    var showUnavailable by remember { mutableStateOf(false) }
+    val places = remember { app.pukaar.data.Places.load(context) }
     StepFrame(6, onBack, stringResource(R.string.pk_onb_offline_title), stringResource(R.string.pk_onb_offline_body), actions = {
         Row(horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space2)) {
-            PlainButton(stringResource(R.string.pk_later), { PukaarStore.setOfflinePending(true); onNext() }, Modifier.weight(1f))
-            if (region.missingMb > 0) {
-                PrimaryButton(stringResource(R.string.pk_onb_offline_download, region.missingMb), { showUnavailable = true }, Modifier.weight(2f), icon = Sym.download)
-            } else {
-                PrimaryButton(stringResource(R.string.pk_continue), onNext, Modifier.weight(2f))
+            when (mapState) {
+                is OfflineMaps.State.Saved -> PrimaryButton(stringResource(R.string.pk_continue), onNext, Modifier.fillMaxWidth())
+                // The download keeps going in the background.
+                is OfflineMaps.State.Downloading -> PrimaryButton(stringResource(R.string.pk_onb_offline_continue_bg), onNext, Modifier.fillMaxWidth())
+                else -> {
+                    PlainButton(stringResource(R.string.pk_later), { PukaarStore.setOfflinePending(true); onNext() }, Modifier.weight(1f))
+                    PrimaryButton(
+                        stringResource(R.string.pk_onb_offline_download, area?.estimateMb ?: 0),
+                        { area?.let { OfflineMaps.download(context, it.bounds, it.name) } },
+                        Modifier.weight(2f),
+                        icon = Sym.download,
+                        enabled = internet && area != null,
+                    )
+                }
             }
         }
     }) {
@@ -372,32 +382,43 @@ private fun OfflineStep(onBack: () -> Unit, onNext: () -> Unit) {
                 PukaarIcon(Sym.myLocation, null, size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(stringResource(R.string.pk_onb_offline_detected), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(region.name, style = MaterialTheme.typography.titleLarge)
+            Text(area?.name ?: "…", style = MaterialTheme.typography.titleLarge)
         }
         PukaarCard(Modifier.fillMaxWidth(), padding = PukaarDimens.space3) {
-            region.items.forEach { item ->
-                val (icon, title, detail) = when (item.kind) {
-                    OfflineItemKind.Map -> Triple(Sym.map, R.string.pk_offline_map, R.string.pk_offline_map_detail)
-                    OfflineItemKind.Places -> Triple(Sym.nightShelter, R.string.pk_offline_places, R.string.pk_offline_places_detail)
-                    OfflineItemKind.Guides -> Triple(Sym.menuBook, R.string.pk_offline_guides, R.string.pk_offline_guides_detail)
-                }
-                Row(Modifier.fillMaxWidth().padding(vertical = PukaarDimens.space1), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space3)) {
-                    PukaarIcon(icon, null, tint = MaterialTheme.colorScheme.primary)
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(detail), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    if (item.saved) Tag(stringResource(R.string.pk_offline_saved), MaterialTheme.status.confirmed)
-                    else Text(stringResource(R.string.pk_mb, item.sizeMb), style = MaterialTheme.typography.labelLarge)
+            OfflineItemRow(Sym.map, R.string.pk_offline_map, R.string.pk_offline_map_detail) {
+                when (val st = mapState) {
+                    is OfflineMaps.State.Saved -> Tag(stringResource(R.string.pk_offline_saved), MaterialTheme.status.confirmed)
+                    is OfflineMaps.State.Downloading -> Text("${st.percent}%", style = MaterialTheme.typography.labelLarge)
+                    else -> Text(stringResource(R.string.pk_offline_about_mb, area?.estimateMb ?: 0), style = MaterialTheme.typography.labelLarge)
                 }
             }
+            (mapState as? OfflineMaps.State.Downloading)?.let {
+                androidx.compose.material3.LinearProgressIndicator(progress = { it.percent / 100f }, modifier = Modifier.fillMaxWidth())
+            }
+            OfflineItemRow(Sym.nightShelter, R.string.pk_offline_places, R.string.pk_offline_places_detail) {
+                if (places.places.isNotEmpty()) Tag(stringResource(R.string.pk_offline_saved), MaterialTheme.status.confirmed)
+            }
+            OfflineItemRow(Sym.menuBook, R.string.pk_offline_guides, R.string.pk_offline_guides_detail) {
+                Tag(stringResource(R.string.pk_offline_saved), MaterialTheme.status.confirmed)
+            }
         }
-        if (onWifi) InfoBox(Sym.wifi, stringResource(R.string.pk_onb_offline_wifi), null)
+        when {
+            mapState is OfflineMaps.State.Failed -> InfoBox(Sym.warning, stringResource(R.string.pk_offline_failed), MaterialTheme.status.warning)
+            !internet -> InfoBox(Sym.wifiOff, stringResource(R.string.pk_onb_offline_no_internet), MaterialTheme.status.warning)
+            onWifi -> InfoBox(Sym.wifi, stringResource(R.string.pk_onb_offline_wifi), null)
+        }
     }
-    if (showUnavailable) MapDownloadUnavailableDialog {
-        showUnavailable = false
-        PukaarStore.setOfflinePending(false)
-        onNext()
+}
+
+@Composable
+private fun OfflineItemRow(icon: String, title: Int, detail: Int, trailing: @Composable () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(vertical = PukaarDimens.space1), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space3)) {
+        PukaarIcon(icon, null, tint = MaterialTheme.colorScheme.primary)
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(detail), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        trailing()
     }
 }
 

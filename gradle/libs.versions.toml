@@ -47,6 +47,8 @@ tor-android-binary = "0.4.4.6"
 
 # Google Play Services
 gms-location = "21.4.0"
+# Pukaar: offline map
+maplibre = "13.6.1"
 
 # WorkManager
 work-runtime = "2.10.1"
@@ -128,6 +130,7 @@ tor-android-binary = { module = "org.torproject:tor-android-binary", version.ref
 
 # Google Play Services
 gms-location = { module = "com.google.android.gms:play-services-location", version.ref = "gms-location" }
+maplibre-android = { module = "org.maplibre.gl:android-sdk", version.ref = "maplibre" }
 
 # WorkManager
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work-runtime" }

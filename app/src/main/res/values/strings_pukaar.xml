@@ -299,9 +299,9 @@
     <string name="pk_map_no_places">No saved places for this area yet.</string>
     <string name="pk_map_show_direction">Show direction</string>
     <string name="pk_map_my_location">My location</string>
-    <string name="pk_map_sample_note">Sample places for testing · map not downloaded</string>
+    <string name="pk_map_sample_note">Sample places for testing</string>
     <string name="pk_map_outside_area">You\'re outside the saved area. Showing its places.</string>
-    <string name="pk_map_tiles_note">Map not downloaded · showing saved places</string>
+    <string name="pk_map_tiles_note">Map not saved for offline use</string>
     <string name="pk_dir_n">north</string>
     <string name="pk_dir_ne">north-east</string>
     <string name="pk_dir_e">east</string>
@@ -405,8 +405,6 @@
     <string name="pk_settings_tile_widget">Quick Settings tile and widget</string>
     <string name="pk_settings_tile_widget_hint">How to add them</string>
     <string name="pk_settings_offline">Offline data</string>
-    <string name="pk_settings_offline_saved">%1$d MB saved on this phone · map not downloaded</string>
-    <string name="pk_settings_offline_download">Download another area</string>
     <string name="pk_settings_offline_needs_internet">Needs internet</string>
     <string name="pk_settings_radio">Radio device</string>
     <string name="pk_settings_radio_none">No radio paired</string>
@@ -427,8 +425,6 @@
     <string name="pk_settings_about">About Pukaar</string>
     <string name="pk_settings_about_hint">Version %1$s · credits and open-source licences</string>
     <string name="pk_offline_unknown_region">Your area</string>
-    <string name="pk_offline_unavailable_title">Map download isn\'t ready yet</string>
-    <string name="pk_offline_unavailable_body">Downloading the offline map isn\'t available in this version. Shelters, hospitals, police and the safety guides are already saved on this phone and work without any network.</string>
 
     <!-- Profile and contacts (2d, 2e, 2w) -->
     <string name="pk_profile_name">Name</string>
@@ -507,7 +503,7 @@
     <string name="pk_onb_offline_title">Save your area for offline use</string>
     <string name="pk_onb_offline_body">Download now while you have internet. It works later without any network.</string>
     <string name="pk_onb_offline_detected">Detected from your location</string>
-    <string name="pk_onb_offline_download">Download %1$d MB</string>
+    <string name="pk_onb_offline_download">Download about %1$d MB</string>
     <string name="pk_onb_offline_wifi">You\'re on Wi-Fi. This won\'t use mobile data.</string>
     <string name="pk_offline_map">Offline map</string>
     <string name="pk_offline_map_detail">Roads, rivers, villages</string>
@@ -575,4 +571,19 @@
     <!-- Full-screen alert permission (Android 14+) -->
     <string name="pk_setup_fullscreen_title">Allow SOS over the lock screen</string>
     <string name="pk_setup_fullscreen_body">So that shaking a locked phone opens the SOS countdown straight away. Without it, you\'ll get a notification to tap first.</string>
+
+    <!-- Offline map (MapLibre) -->
+    <string name="pk_map_attribution">© OpenStreetMap contributors · OpenFreeMap</string>
+    <string name="pk_offline_area_here">Your area</string>
+    <string name="pk_offline_downloading">Downloading… %1$d%%</string>
+    <string name="pk_offline_saved_detail">%1$d MB · saved %2$s</string>
+    <string name="pk_offline_not_saved">Map not saved · about %1$d MB</string>
+    <string name="pk_offline_about_mb">about %1$d MB</string>
+    <string name="pk_offline_download">Download</string>
+    <string name="pk_offline_failed">The download didn\'t finish. Try again when you have internet.</string>
+    <string name="pk_offline_delete">Delete offline map</string>
+    <string name="pk_settings_offline_bundled">Shelters, hospitals, police and guides</string>
+    <string name="pk_settings_offline_bundled_hint">Saved with the app</string>
+    <string name="pk_onb_offline_continue_bg">Continue while it downloads</string>
+    <string name="pk_onb_offline_no_internet">No internet right now. You can download the map later from Settings.</string>
 </resources>

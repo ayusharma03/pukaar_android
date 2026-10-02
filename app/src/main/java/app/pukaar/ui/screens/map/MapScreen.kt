@@ -47,6 +47,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalInspectionMode
+import app.pukaar.map.OfflineMaps
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.MapLibreMap
 import androidx.compose.ui.unit.dp
 import app.pukaar.data.Place
 import app.pukaar.data.PlaceType
@@ -73,6 +81,8 @@ data class MapState(
     val me: LatLon?,
     val meAccuracyM: Float?,
     val connection: ConnectionStatus,
+    /** True when the base map for this area is saved for offline use. */
+    val mapSaved: Boolean = false,
 )
 
 data class LatLon(val lat: Double, val lon: Double)
@@ -99,8 +109,9 @@ fun compassPoint(bearing: Float): Int {
 }
 
 /**
- * Map (2p). Offline: places drawn on a plain projection around the user. Map tiles aren't
- * bundled yet, so the background shows no roads; shelters, hospitals and police still work.
+ * Map (2p). MapLibre draws the base map in Pukaar's style (from the offline area when it's
+ * saved, FR-19); shelters, hospitals, police and the user are drawn on top in Compose so they
+ * work even with no map tiles at all. Previews use a plain projection instead of MapLibre.
  */
 @Composable
 fun MapScreen(
@@ -125,6 +136,18 @@ fun MapScreen(
     val center = userCenter ?: origin
     var metersPerPx by remember { mutableFloatStateOf(6f) }
     var size by remember { mutableStateOf(IntSize.Zero) }
+    var map by remember { mutableStateOf<MapLibreMap?>(null) }
+    var cameraTick by remember { mutableIntStateOf(0) }
+    val preview = LocalInspectionMode.current
+    val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+
+    // Base map style follows the theme; the camera starts on the user (or the saved area).
+    LaunchedEffect(map, dark) {
+        map?.setStyle(if (dark) OfflineMaps.STYLE_DARK else OfflineMaps.STYLE_LIGHT)
+    }
+    LaunchedEffect(map, me != null) {
+        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(origin.lat, origin.lon), 13.0))
+    }
 
     val visible = state.places.filter { it.type in layers }
     val from = me ?: center
@@ -133,6 +156,11 @@ fun MapScreen(
     val selected = state.places.firstOrNull { it.id == selectedId } ?: nearestShelter
 
     fun toScreen(p: LatLon): Offset {
+        map?.let { m ->
+            cameraTick // re-read on every camera move
+            val pt = m.projection.toScreenLocation(LatLng(p.lat, p.lon))
+            return Offset(pt.x, pt.y)
+        }
         val mPerDegLat = 110_540.0
         val mPerDegLon = 111_320.0 * cos(Math.toRadians(center.lat))
         val dx = (p.lon - center.lon) * mPerDegLon / metersPerPx
@@ -145,12 +173,15 @@ fun MapScreen(
     val density = LocalDensity.current
 
     Box(Modifier.fillMaxSize().background(colors.surfaceContainerLow)) {
-        // Map canvas: pan and pinch to zoom.
+        if (!preview) {
+            PukaarMapView(Modifier.fillMaxSize(), onReady = { map = it }, onCameraMove = { cameraTick++ })
+        }
+        // Pins and location on top. Without MapLibre (previews), this layer pans and zooms itself.
         Box(
             Modifier
                 .fillMaxSize()
                 .onSizeChanged { size = it }
-                .pointerInput(origin) {
+                .then(if (map != null) Modifier else Modifier.pointerInput(origin) {
                     detectTransformGestures { _, pan, zoom, _ ->
                         metersPerPx = (metersPerPx / zoom).coerceIn(0.3f, 60f)
                         val mPerDegLat = 110_540.0
@@ -161,14 +192,17 @@ fun MapScreen(
                             c.lon - pan.x * metersPerPx / mPerDegLon,
                         )
                     }
-                },
+                }),
         ) {
             Canvas(Modifier.fillMaxSize()) {
                 // Distance rings every 500 m around the user help judge distance without roads.
                 if (me != null) {
                     val c = toScreen(me)
-                    for (r in 1..6) drawCircle(colors.outlineVariant, (r * 500f) / metersPerPx, c, style = Stroke(1.dp.toPx()))
-                    state.meAccuracyM?.let { acc -> drawCircle(colors.primary.copy(alpha = 0.15f), acc / metersPerPx, c) }
+                    // Screen radius of a distance on the ground, measured through the current projection.
+                    fun radiusPx(meters: Float) = (toScreen(LatLon(me.lat + meters / 110_540.0, me.lon)) - c).getDistance()
+                    // Distance rings only on the plain fallback; the real map has roads to judge by.
+                    if (map == null) for (r in 1..6) drawCircle(colors.outlineVariant, radiusPx(r * 500f), c, style = Stroke(1.dp.toPx()))
+                    state.meAccuracyM?.let { acc -> drawCircle(colors.primary.copy(alpha = 0.15f), radiusPx(acc), c) }
                     if (selected != null) {
                         drawLine(colors.primary.copy(alpha = 0.6f), c, toScreen(LatLon(selected.lat, selected.lon)), 3.dp.toPx())
                     }
@@ -237,6 +271,7 @@ fun MapScreen(
                                 Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable {
                                     selectedId = place.id
                                     userCenter = LatLon(place.lat, place.lon)
+                                    map?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(place.lat, place.lon), 14.0))
                                     query = ""
                                 }.padding(horizontal = PukaarDimens.space4),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -271,7 +306,9 @@ fun MapScreen(
             Text(
                 listOfNotNull(
                     if (outsideArea) stringResource(R.string.pk_map_outside_area) else null,
-                    stringResource(if (state.sampleData) R.string.pk_map_sample_note else R.string.pk_map_tiles_note),
+                    if (state.sampleData) stringResource(R.string.pk_map_sample_note) else null,
+                    if (!state.mapSaved) stringResource(R.string.pk_map_tiles_note) else null,
+                    stringResource(R.string.pk_map_attribution),
                 ).joinToString("\n"),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.onSurfaceVariant,
@@ -292,7 +329,11 @@ fun MapScreen(
                 )
                 Box(
                     Modifier.size(56.dp).clip(RoundedCornerShape(16.dp)).background(colors.surfaceContainerHigh)
-                        .clickable(enabled = me != null, role = Role.Button) { userCenter = null; metersPerPx = 6f },
+                        .clickable(enabled = me != null, role = Role.Button) {
+                            userCenter = null
+                            metersPerPx = 6f
+                            me?.let { map?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(it.lat, it.lon), 14.0)) }
+                        },
                     contentAlignment = Alignment.Center,
                 ) { PukaarIcon(Sym.myLocation, stringResource(R.string.pk_map_my_location), tint = if (me != null) colors.primary else colors.outline) }
             }

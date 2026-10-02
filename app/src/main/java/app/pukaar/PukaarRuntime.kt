@@ -6,6 +6,7 @@ import android.text.format.DateFormat
 import app.pukaar.data.PukaarStore
 import app.pukaar.device.DeviceStatus
 import app.pukaar.gateway.Gateway
+import app.pukaar.map.OfflineMaps
 import app.pukaar.sos.OfficialPacket
 import app.pukaar.sos.Packets
 import app.pukaar.sos.SosManager
@@ -56,6 +57,11 @@ object PukaarRuntime {
             onOwnAck = { SosManager.onPacket(it) },
         )
         ShakeTrigger.start(app, scope)
+        OfflineMaps.init(app)
+        // Once the offline map is saved, Home stops reminding about it.
+        scope.launch {
+            OfflineMaps.state.collect { if (it is OfflineMaps.State.Saved) PukaarStore.setOfflinePending(false) }
+        }
         watchPackets(app)
         ChatOutbox.start(app, scope)
         scope.launch {
