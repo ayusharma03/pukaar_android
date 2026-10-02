@@ -241,15 +241,16 @@ class MainActivity : OrientationAwareActivity() {
         }
 
         when (onboardingState) {
+            // Pukaar: Pukaar-styled versions of bitchat's start-up screens (app.pukaar.ui.screens.system).
             OnboardingState.PERMISSION_REQUESTING -> {
-                InitializingScreen(modifier)
+                app.pukaar.ui.screens.system.PukaarStarting()
             }
             
             OnboardingState.BLUETOOTH_CHECK -> {
-                BluetoothCheckScreen(
-                    modifier = modifier,
+                app.pukaar.ui.screens.system.PukaarBluetoothCheck(
                     status = bluetoothStatus,
-                    onEnableBluetooth = {
+                    loading = isBluetoothLoading,
+                    onEnable = {
                         mainViewModel.updateBluetoothLoading(true)
                         bluetoothStatusManager.requestEnableBluetooth()
                     },
@@ -259,31 +260,29 @@ class MainActivity : OrientationAwareActivity() {
                     onSkip = {
                         mainViewModel.skipBluetoothCheck()
                         checkLocationAndProceed()
-                    },
-                    isLoading = isBluetoothLoading
+                    }
                 )
             }
             
             OnboardingState.LOCATION_CHECK -> {
-                LocationCheckScreen(
-                    modifier = modifier,
+                app.pukaar.ui.screens.system.PukaarLocationCheck(
                     status = locationStatus,
-                    onEnableLocation = {
+                    loading = isLocationLoading,
+                    onEnable = {
                         mainViewModel.updateLocationLoading(true)
                         locationStatusManager.requestEnableLocation()
                     },
                     onRetry = {
                         checkLocationAndProceed()
-                    },
-                    isLoading = isLocationLoading
+                    }
                 )
             }
             
             OnboardingState.BATTERY_OPTIMIZATION_CHECK -> {
-                BatteryOptimizationScreen(
-                    modifier = modifier,
+                app.pukaar.ui.screens.system.PukaarBatteryCheck(
                     status = batteryOptimizationStatus,
-                    onDisableBatteryOptimization = {
+                    loading = isBatteryOptimizationLoading,
+                    onDisable = {
                         mainViewModel.updateBatteryOptimizationLoading(true)
                         batteryOptimizationManager.requestDisableBatteryOptimization()
                     },
@@ -291,17 +290,16 @@ class MainActivity : OrientationAwareActivity() {
                         checkBatteryOptimizationAndProceed()
                     },
                     onSkip = {
-                        // Skip battery optimization and proceed
+                        // Skip battery optimization and proceed. Pukaar: remember it, so it isn't asked twice.
+                        BatteryOptimizationPreferenceManager.setSkipped(this@MainActivity, true)
                         proceedWithPermissionCheck()
-                    },
-                    isLoading = isBatteryOptimizationLoading
+                    }
                 )
             }
             
             OnboardingState.PERMISSION_EXPLANATION -> {
-                PermissionExplanationScreen(
-                    modifier = modifier,
-                    permissionCategories = permissionManager.getCategorizedPermissions(),
+                app.pukaar.ui.screens.system.PukaarPermissionsCheck(
+                    categories = permissionManager.getCategorizedPermissions(),
                     onContinue = {
                         mainViewModel.updateOnboardingState(OnboardingState.PERMISSION_REQUESTING)
                         onboardingCoordinator.requestPermissions()
@@ -310,8 +308,7 @@ class MainActivity : OrientationAwareActivity() {
             }
 
             OnboardingState.BACKGROUND_LOCATION_EXPLANATION -> {
-                BackgroundLocationPermissionScreen(
-                    modifier = modifier,
+                app.pukaar.ui.screens.system.PukaarBackgroundLocationCheck(
                     onContinue = {
                         onboardingCoordinator.requestBackgroundLocation()
                     },
@@ -335,9 +332,8 @@ class MainActivity : OrientationAwareActivity() {
             }
             
             OnboardingState.ERROR -> {
-                InitializationErrorScreen(
-                    modifier = modifier,
-                    errorMessage = errorMessage,
+                app.pukaar.ui.screens.system.PukaarStartError(
+                    detail = errorMessage,
                     onRetry = {
                         mainViewModel.updateOnboardingState(OnboardingState.CHECKING)
                         checkOnboardingStatus()
@@ -576,7 +572,8 @@ class MainActivity : OrientationAwareActivity() {
                 mainViewModel.updateOnboardingState(OnboardingState.LOCATION_CHECK)
                 mainViewModel.updateLocationLoading(false)
             }
-            currentBatteryOptimizationStatus == BatteryOptimizationStatus.ENABLED -> {
+            currentBatteryOptimizationStatus == BatteryOptimizationStatus.ENABLED &&
+                !BatteryOptimizationPreferenceManager.isSkipped(this) -> {
                 // Battery optimization still enabled, show battery optimization screen
                 mainViewModel.updateBatteryOptimizationStatus(currentBatteryOptimizationStatus)
                 mainViewModel.updateOnboardingState(OnboardingState.BATTERY_OPTIMIZATION_CHECK)

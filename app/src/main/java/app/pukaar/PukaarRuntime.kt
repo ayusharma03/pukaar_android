@@ -24,6 +24,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
+/** Pukaar's own version, shown in Settings and About (bitchat's versionName is kept for its release tooling). */
+const val PUKAAR_VERSION = "1.0"
+
 /** Intent extras that open a Pukaar screen from notifications, the tile and widgets. */
 object PukaarIntents {
     const val EXTRA_ROUTE = "pukaar_route"

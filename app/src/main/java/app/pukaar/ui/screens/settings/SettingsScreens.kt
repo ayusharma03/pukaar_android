@@ -1,6 +1,11 @@
 package app.pukaar.ui.screens.settings
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import app.pukaar.ui.theme.status
 import android.location.Location
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,7 +73,6 @@ import app.pukaar.ui.theme.PukaarDimens
 import app.pukaar.ui.theme.PukaarIcon
 import app.pukaar.ui.theme.PukaarThemeMode
 import app.pukaar.ui.theme.Sym
-import com.bitchat.android.BuildConfig
 import com.bitchat.android.R
 import com.bitchat.android.ui.LanguagePreferenceManager
 
@@ -226,7 +230,7 @@ fun SettingsRoute(
             Box(Modifier.size(PukaarDimens.space3))
             ListRow(
                 stringResource(R.string.pk_settings_about),
-                subtitle = stringResource(R.string.pk_settings_about_hint, BuildConfig.VERSION_NAME),
+                subtitle = stringResource(R.string.pk_settings_about_hint, app.pukaar.PUKAAR_VERSION),
                 icon = Sym.info,
                 onClick = onAbout,
                 trailing = { Chevron() },
@@ -420,11 +424,52 @@ fun SosSetupContent(settings: PukaarSettings, onPractice: () -> Unit, modifier: 
                 trailing = { Switch(checked = settings.shakeEnabled, onCheckedChange = null) },
             )
         }
+        if (settings.shakeEnabled) FullScreenAlertCheck()
         InfoBox(Sym.timer, pluralStringResource(R.plurals.pk_setup_countdown_note, settings.countdownSeconds, settings.countdownSeconds), null)
         OutlineButton(stringResource(R.string.pk_setup_practice), onPractice, Modifier.fillMaxWidth(), icon = Sym.playArrow)
         Text(stringResource(R.string.pk_setup_practice_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+/**
+ * Android 14+ makes full-screen alerts opt-in. Without it, shaking a locked phone only posts a
+ * notification instead of opening the SOS countdown, so offer the setting here.
+ */
+@Composable
+private fun FullScreenAlertCheck() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+    val context = LocalContext.current
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    var allowed by remember { mutableStateOf(canUseFullScreen(context)) }
+    androidx.compose.runtime.DisposableEffect(lifecycle) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) allowed = canUseFullScreen(context)
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    if (allowed) return
+    InfoBox(
+        Sym.warning,
+        stringResource(R.string.pk_setup_fullscreen_body),
+        MaterialTheme.status.warning,
+        title = stringResource(R.string.pk_setup_fullscreen_title),
+        action = {
+            TonalButton(stringResource(R.string.pk_allow), {
+                runCatching {
+                    context.startActivity(
+                        Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.fromParts("package", context.packageName, null))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }
+            })
+        },
+    )
+}
+
+private fun canUseFullScreen(context: Context): Boolean =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
+        context.getSystemService(android.app.NotificationManager::class.java)?.canUseFullScreenIntent() != false
 
 @Composable
 fun SosSetupRoute(onBack: () -> Unit, onPractice: () -> Unit) {
@@ -443,7 +488,7 @@ fun AboutRoute(onBack: () -> Unit) {
     Column(Modifier.fillMaxSize()) {
         PukaarTopBar(stringResource(R.string.pk_settings_about), onBack = onBack)
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = PukaarDimens.space4), verticalArrangement = Arrangement.spacedBy(PukaarDimens.space3)) {
-            Text(stringResource(R.string.pk_about_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.pk_about_version, app.pukaar.PUKAAR_VERSION), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.pk_about_body), style = MaterialTheme.typography.bodyLarge)
             SectionHeader(stringResource(R.string.pk_about_credits))
             PukaarCard(padding = 0.dp) {
@@ -468,3 +513,15 @@ fun AboutRoute(onBack: () -> Unit) {
 private fun SosSetupPreview() = PreviewTheme {
     SosSetupContent(PukaarSettings(), {}, Modifier.padding(PukaarDimens.space4))
 }
+
+@PukaarPreviews
+@Composable
+private fun SettingsPreview() = PreviewTheme { SettingsRoute({}, {}, {}, {}, {}) }
+
+@PukaarPreviews
+@Composable
+private fun ProfilePreview() = PreviewTheme { ProfileRoute {} }
+
+@PukaarPreviews
+@Composable
+private fun AboutPreview() = PreviewTheme { AboutRoute {} }

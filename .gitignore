@@ -1,5 +1,5 @@
 # Android Studio / IntelliJ
-.idea/
+.idea.old/
 *.iml
 build/
 !*/build/filtered-manifest/

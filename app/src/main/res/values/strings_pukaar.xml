@@ -525,4 +525,54 @@
     <string name="pk_about_credits">Credits and licences</string>
     <string name="pk_about_bitchat">Built on bitchat</string>
     <string name="pk_about_bitchat_licence">Bluetooth mesh by the bitchat project · GNU GPL v3</string>
+
+    <!-- Start-up checks (replace bitchat's screens) -->
+    <string name="pk_check_again">Check again</string>
+    <string name="pk_check_open_settings">Open settings</string>
+    <string name="pk_check_bt_title">Turn on Bluetooth</string>
+    <string name="pk_check_bt_body">Pukaar uses Bluetooth to pass messages and SOS between phones when there is no network.</string>
+    <string name="pk_check_bt_turn_on">Turn on Bluetooth</string>
+    <string name="pk_check_bt_skip">Continue without Bluetooth</string>
+    <string name="pk_check_bt_impact">Without Bluetooth, your SOS can only go by SMS or internet.</string>
+    <string name="pk_check_bt_unsupported_title">This phone has no Bluetooth</string>
+    <string name="pk_check_bt_unsupported_body">Pukaar can\'t pass messages to nearby phones. SOS will go by SMS or internet when there is signal.</string>
+    <string name="pk_check_loc_title">Turn on location</string>
+    <string name="pk_check_loc_body">Android needs location turned on to find nearby phones over Bluetooth. It also lets your SOS say where you are.</string>
+    <string name="pk_check_loc_turn_on">Turn on location</string>
+    <string name="pk_check_loc_why">Pukaar only shares your location in an SOS or when you attach it to a message.</string>
+    <string name="pk_check_loc_unavailable_title">Location isn\'t available</string>
+    <string name="pk_check_loc_unavailable_body">This phone can\'t provide location, so Pukaar can\'t look for nearby phones.</string>
+    <string name="pk_check_battery_title">Let Pukaar run in the background</string>
+    <string name="pk_check_battery_body">Battery saving can stop Pukaar when the screen is off. Then your phone can\'t pass on messages or send your SOS.</string>
+    <string name="pk_check_battery_allow">Allow background use</string>
+    <string name="pk_check_battery_point1">Your SOS keeps trying while the phone is locked</string>
+    <string name="pk_check_battery_point2">You help pass on other people\'s messages</string>
+    <string name="pk_check_perm_title">Pukaar still needs these</string>
+    <string name="pk_check_perm_body">Without them, Pukaar can\'t reach nearby phones or send your SOS properly.</string>
+    <string name="pk_perm_microphone">Microphone</string>
+    <string name="pk_perm_microphone_why">For voice messages</string>
+    <string name="pk_perm_other">Other access</string>
+    <string name="pk_perm_other_why">Needed for the Bluetooth mesh to work</string>
+    <string name="pk_check_bg_title">Keep working when Pukaar is closed</string>
+    <string name="pk_check_bg_body">Android asks for location \"all the time\" so Pukaar can find nearby phones while it\'s closed, and reconnect after a restart.</string>
+    <string name="pk_check_bg_allow">Allow all the time</string>
+    <string name="pk_check_bg_how">When settings open, choose \"Allow all the time\".</string>
+    <string name="pk_check_bg_privacy">Pukaar never stores or shares your location in the background. It is only sent in an SOS or when you attach it.</string>
+    <string name="pk_check_starting">Starting Pukaar…</string>
+    <string name="pk_check_error_title">Pukaar couldn\'t start</string>
+    <string name="pk_check_error_body">Some permissions may have been turned off. Try again, or open settings and allow them.</string>
+
+    <!-- Persistent mesh notification (2x) -->
+    <string name="pk_mesh_notif_title">Pukaar · running</string>
+    <string name="pk_mesh_notif_no_peers">No phones nearby yet</string>
+    <string name="pk_mesh_notif_with_waiting">%1$s · %2$s</string>
+    <plurals name="pk_mesh_notif_waiting">
+        <item quantity="one">%d message waiting</item>
+        <item quantity="other">%d messages waiting</item>
+    </plurals>
+    <string name="pk_mesh_notif_quit">Quit Pukaar</string>
+
+    <!-- Full-screen alert permission (Android 14+) -->
+    <string name="pk_setup_fullscreen_title">Allow SOS over the lock screen</string>
+    <string name="pk_setup_fullscreen_body">So that shaking a locked phone opens the SOS countdown straight away. Without it, you\'ll get a notification to tap first.</string>
 </resources>
