@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Pukaar logo mark (assets/pukaar-mark.svg). Tint it at the point of use, e.g. primary. -->
+<!-- Pukaar logo mark, option 1b "P-ripple" (docs/design/app-icon/svg/pukaar-mark.svg).
+     The caller dot inside a ring that forms a P with the stem; the node past the ring is the
+     next phone. Drawn in black: tint it at the point of use, e.g. primary. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp" android:height="48dp"
-    android:viewportWidth="48" android:viewportHeight="48">
-    <group>
-        <path android:fillColor="#FFFFFFFF" android:pathData="M18.5,24a5.5,5.5 0 1,0 11,0a5.5,5.5 0 1,0 -11,0Z"/>
-        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="4" android:strokeLineCap="round" android:pathData="M19,32.66A10,10 0 1,1 29,32.66"/>
-        <path android:strokeColor="#FFFFFFFF" android:strokeWidth="4" android:strokeLineCap="round" android:pathData="M11.98,36.02A17,17 0 1,1 36.02,36.02"/>
-        <path android:fillColor="#FFFFFFFF" android:pathData="M31.82,11.98a4.2,4.2 0 1,0 8.4,0a4.2,4.2 0 1,0 -8.4,0Z"/>
+    android:viewportWidth="66" android:viewportHeight="66">
+    <group android:translateX="-21" android:translateY="-21">
+        <group android:pivotX="54" android:pivotY="54" android:scaleX="0.86" android:scaleY="0.86">
+            <path android:fillColor="#FF000000" android:pathData="M47.5,46a8.5,8.5 0 1,0 17,0a8.5,8.5 0 1,0 -17,0" />
+            <path android:strokeColor="#FF000000" android:strokeWidth="8.5" android:strokeLineCap="round"
+                android:pathData="M39,46A17,17 0 1,1 63.18,61.41" />
+            <path android:strokeColor="#FF000000" android:strokeWidth="8.5" android:strokeLineCap="round"
+                android:pathData="M39,46V76" />
+            <path android:fillColor="#FF000000" android:pathData="M67.85,72.21a6.5,6.5 0 1,0 13,0a6.5,6.5 0 1,0 -13,0" />
+        </group>
     </group>
 </vector>
