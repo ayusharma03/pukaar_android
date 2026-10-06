@@ -3,22 +3,32 @@
 'use strict';
 
 const pk = require('./pukaar-crypto');
+const { areaFor } = require('./areas');
 
 const STATUS_CODE = { new: 'N', attended: 'A', resolved: 'R' };
 const FLAG_LABELS = ['Injured', 'Trapped', 'Need water', 'Need medicine', 'Child or elderly'];
 const ID_RE = /^[A-Za-z0-9]{4,32}$/;
+// Messages that travel over the mesh or LoRa radio must fit in a radio packet.
+const RADIO_LIMIT_BYTES = 200;
+const VIA = ['direct', 'mesh', 'radio'];
 
-class BadRequest extends Error {}
+class BadRequest extends Error {
+  constructor(message, status = 400) {
+    super(message);
+    this.status = status;
+  }
+}
 
 /**
  * @param {object} deps
- * @param {object} deps.store   async get/put for sos docs, messages and broadcasts (see memoryStore.js)
+ * @param {object} deps.store   async get/put for sos docs, messages and broadcasts (see stores.js)
  * @param {object} deps.sms     { send(to, text) -> Promise<boolean> }
  * @param {object} deps.keys    { signPrivate, boxPrivate } base64url raw keys
  * @param {function} [deps.now] () -> ms
  * @param {string} [deps.defaultCountryCode] e.g. '+91'
+ * @param {function} [deps.area] (lat, lon) -> { block, village } | null, for the dashboard's area labels
  */
-function createService({ store, sms, keys, now = () => Date.now(), defaultCountryCode = '+91' }) {
+function createService({ store, sms, keys, now = () => Date.now(), defaultCountryCode = '+91', area = areaFor }) {
   const nowSec = () => Math.floor(now() / 1000);
 
   function requireId(id) {
@@ -32,15 +42,35 @@ function createService({ store, sms, keys, now = () => Date.now(), defaultCountr
   }
 
   function statusOf(doc) {
-    return { id: doc.id, status: doc.status, time: doc.statusTime, by: doc.by || '', smsSent: !!doc.smsSent, sig: signAck(doc) };
+    const st = { id: doc.id, status: doc.status, time: doc.statusTime, by: doc.by || '', smsSent: !!doc.smsSent, sig: signAck(doc) };
+    // Control-room messages to this person ride along with the status (the latest few, signed).
+    const msgs = (doc.outbox || []).slice(-3);
+    if (msgs.length) st.messages = msgs.map((m) => ({ ...m, sig: pk.sign(pk.messageSignedText({ sosId: doc.id, ...m }), keys.signPrivate) }));
+    return st;
+  }
+
+  /** The signed-in operator, for history and notes. */
+  function actorOf(actor) {
+    return { by: str(actor && actor.name, 80), uid: str(actor && actor.uid, 128) };
   }
 
   /** A new SOS record, or an existing one, ready to merge into. */
   async function load(id) {
-    const existing = await store.getSos(id);
-    if (existing) return existing;
+    const found = await store.getSos(id);
+    if (found) return found;
     const t = nowSec();
-    return { id, status: 'new', statusTime: t, by: '', smsSent: false, via: [], relayedBy: [], contacts: [], history: [{ status: 'new', time: t, by: '' }], createdAt: t };
+    return {
+      id, status: 'new', statusTime: t, by: '', smsSent: false, via: [], relayedBy: [], contacts: [],
+      history: [{ status: 'new', time: t, by: '' }], createdAt: t, receivedAt: t,
+    };
+  }
+
+  /** An SOS that must already exist (dashboard routes). */
+  async function existing(id) {
+    requireId(id);
+    const doc = await store.getSos(id);
+    if (!doc) throw new BadRequest('unknown sos', 404);
+    return doc;
   }
 
   /** POST /v1/sos */
@@ -59,10 +89,20 @@ function createService({ store, sms, keys, now = () => Date.now(), defaultCountr
         flags: Array.isArray(body.flags) ? body.flags.map(String).slice(0, 8) : [],
         name: str(body.name, 64), message: str(body.message, 400),
       });
+      // Set when the fix is older than the SOS ("last known, 12 min old").
+      const locationAt = num(body.locationAt);
+      if (locationAt) doc.locationAt = locationAt;
+      else delete doc.locationAt;
+      const a = area(doc.lat, doc.lon);
+      if (a) doc.area = a;
     }
-    const via = body.via === 'direct' ? 'direct' : 'mesh';
+    const via = VIA.includes(body.via) ? body.via : 'mesh';
     if (!doc.via.includes(via)) doc.via.push(via);
     if (body.relayedBy && !doc.relayedBy.includes(String(body.relayedBy))) doc.relayedBy.push(str(body.relayedBy, 64));
+    // Fewest hops seen across all the paths it arrived by.
+    const hops = num(body.hops);
+    if (via === 'mesh' && Number.isInteger(hops) && hops >= 0 && hops <= 50) doc.hops = doc.hops == null ? hops : Math.min(doc.hops, hops);
+    if (via === 'radio' && body.radioNode) doc.radioNode = str(body.radioNode, 32);
 
     // Only the sender's own phone sends these, over HTTPS (never over the mesh in plain).
     if (via === 'direct') {
@@ -118,6 +158,26 @@ function createService({ store, sms, keys, now = () => Date.now(), defaultCountr
     return { ok: true };
   }
 
+  /**
+   * POST /v1/sos/sms: the person's own phone texted family itself (for example the SOS reached us
+   * only through the mesh, so we had no contacts) and reports how it went.
+   */
+  async function receiveSmsReport(body) {
+    const doc = await existing(body.id);
+    const list = Array.isArray(body.results) ? body.results.slice(0, 5) : [];
+    const reported = list
+      .filter((r) => r && r.phone)
+      .map((r) => ({ name: str(r.name, 64), phone: str(r.phone, 32), ok: !!r.ok, by: 'phone', at: num(r.time) || nowSec() }));
+    if (!reported.length) return { ok: true };
+    const others = (doc.smsResults || []).filter((r) => !(r.by === 'phone' && reported.some((p) => p.phone === r.phone)));
+    const firstReport = !(doc.smsResults || []).some((r) => r.by === 'phone');
+    doc.smsResults = [...others, ...reported];
+    if (firstReport) doc.history.push({ status: 'sms', time: nowSec(), by: '', text: 'Family texted from their phone' });
+    doc.updatedAt = nowSec();
+    await store.putSos(doc.id, doc);
+    return { ok: true };
+  }
+
   /** POST /v1/messages: the Disaster Relief chat as gateways saw it (FR-33). */
   async function receiveMessages(body) {
     const list = Array.isArray(body.messages) ? body.messages.slice(0, 500) : [];
@@ -139,29 +199,94 @@ function createService({ store, sms, keys, now = () => Date.now(), defaultCountr
   async function broadcasts(since) {
     const items = await store.getBroadcastsSince(Number(since) || 0);
     return {
-      items: items.map((b) => ({ ...b, sig: pk.sign(pk.officialSignedText(b), keys.signPrivate) })),
+      items: items.map((b) => {
+        const item = { id: b.id, from: b.from, text: b.text, time: b.time };
+        return { ...item, sig: pk.sign(pk.officialSignedText(item), keys.signPrivate) };
+      }),
     };
   }
 
-  /** Dashboard (D3): a responder changes an SOS status. Sent back to the user as a signed ack. */
-  async function setStatus(id, status, by) {
+  /**
+   * POST /v1/broadcasts/seen: a phone reports official messages it has shown, with a random install
+   * id. Reach is the number of different installs (anonymous, so treat it as an estimate).
+   */
+  async function broadcastsSeen(body) {
+    const device = str(body.device, 64);
+    if (!/^[A-Za-z0-9_-]{8,64}$/.test(device)) throw new BadRequest('bad device');
+    const ids = (Array.isArray(body.ids) ? body.ids : []).map(String).filter((x) => /^[a-z0-9]{1,16}$/.test(x)).slice(0, 20);
+    await Promise.all(ids.map((id) => store.markBroadcastSeen(id, device)));
+    return { ok: true };
+  }
+
+  /**
+   * Dashboard (D3): a responder changes an SOS status, including undo and reopen (any status to any
+   * other). Sent back to the person as a signed ack.
+   *
+   * opts.assignee: who is going (free text). The person's phone shows it ("A rescuer is on it").
+   * opts.note: optional team note. opts.actor: the signed-in operator { uid, name }, kept in history
+   * and notes so there's a record of who changed what. A plain string is taken as the assignee
+   * (older callers).
+   */
+  async function setStatus(id, status, opts = {}) {
+    if (typeof opts === 'string') opts = { assignee: opts };
     requireId(id);
     if (!STATUS_CODE[status]) throw new BadRequest('bad status');
-    const doc = await store.getSos(id);
-    if (!doc) throw new BadRequest('unknown sos');
+    const doc = await existing(id);
+    const actor = actorOf(opts.actor);
+    const t = nowSec();
+    const assignee = str(opts.assignee, 80).trim();
+    if (status === 'new') doc.assignee = '';
+    else if (assignee) doc.assignee = assignee;
     doc.status = status;
-    doc.statusTime = nowSec();
-    doc.by = str(by, 80);
-    doc.history.push({ status, time: doc.statusTime, by: doc.by });
+    doc.statusTime = t;
+    doc.by = status === 'new' ? '' : (doc.assignee || actor.by);
+    const entry = { status, time: t, ...actor };
+    if (doc.assignee && status !== 'new') entry.assignee = doc.assignee;
+    doc.history.push(entry);
+    const note = str(opts.note, 1000).trim();
+    if (note) (doc.notes = doc.notes || []).push({ at: t, text: note, ...actor });
+    doc.updatedAt = t;
     await store.putSos(id, doc);
     return statusOf(doc);
   }
 
-  /** Dashboard (D4): an official broadcast into the mesh. */
-  async function addBroadcast(from, text) {
-    const item = { id: Math.floor(now()).toString(36), from: str(from, 80), text: str(text, 1000), time: nowSec() };
+  /** Dashboard (D3): a team note on an SOS. Notes stay on the server; the person doesn't see them. */
+  async function addNote(id, text, actor) {
+    const doc = await existing(id);
+    const clean = str(text, 1000).trim();
+    if (!clean) throw new BadRequest('text is required');
+    const note = { at: nowSec(), text: clean, ...actorOf(actor) };
+    (doc.notes = doc.notes || []).push(note);
+    doc.updatedAt = note.at;
+    await store.putSos(id, doc);
+    return note;
+  }
+
+  /**
+   * Dashboard (D3): a message to the person who sent the SOS. Signed, and delivered through gateways
+   * with the status poll (GET /v1/sos/status), so it must fit in a radio packet.
+   */
+  async function messagePerson(id, text, actor) {
+    const doc = await existing(id);
+    const clean = String(text || '').trim();
+    if (!clean) throw new BadRequest('text is required');
+    if (Buffer.byteLength(clean, 'utf8') > RADIO_LIMIT_BYTES) throw new BadRequest(`text is over ${RADIO_LIMIT_BYTES} bytes`);
+    const who = actorOf(actor);
+    const t = nowSec();
+    const msg = { id: Math.floor(now()).toString(36), time: t, from: who.by || 'Control room', text: clean };
+    (doc.outbox = doc.outbox || []).push(msg);
+    doc.history.push({ status: 'message', time: t, ...who, text: clean });
+    doc.updatedAt = t;
+    await store.putSos(id, doc);
+    return msg;
+  }
+
+  /** Dashboard (D4): an official broadcast into the mesh. Must fit in a radio packet. */
+  async function addBroadcast(from, text, actor) {
+    const item = { id: Math.floor(now()).toString(36), from: str(from, 80).trim(), text: String(text || '').trim(), time: nowSec() };
     if (!item.from || !item.text) throw new BadRequest('from and text are required');
-    await store.addBroadcast(item);
+    if (Buffer.byteLength(item.text, 'utf8') > RADIO_LIMIT_BYTES) throw new BadRequest(`text is over ${RADIO_LIMIT_BYTES} bytes`);
+    await store.addBroadcast({ ...item, reach: 0, ...(actor ? { sentBy: actorOf(actor) } : {}) });
     return item;
   }
 
@@ -183,10 +308,14 @@ function createService({ store, sms, keys, now = () => Date.now(), defaultCountr
     if (doc.smsSent || !doc.time || doc.contacts.length === 0) return;
     const text = smsText(doc);
     const results = await Promise.all(doc.contacts.map((c) => sendSms(c.phone, text)));
-    doc.smsResults = doc.contacts.map((c, i) => ({ phone: c.phone, ok: results[i] }));
+    const at = nowSec();
+    doc.smsResults = [
+      ...(doc.smsResults || []).filter((r) => r.by === 'phone'),
+      ...doc.contacts.map((c, i) => ({ name: c.name, phone: c.phone, ok: results[i], by: 'server', at })),
+    ];
     if (results.some(Boolean)) {
       doc.smsSent = true;
-      doc.statusTime = nowSec(); // phones learn about the SMS through a fresh signed ack
+      doc.statusTime = at; // phones learn about the SMS through a fresh signed ack
     }
   }
 
@@ -200,7 +329,10 @@ function createService({ store, sms, keys, now = () => Date.now(), defaultCountr
     }
   }
 
-  return { receiveSos, receiveContacts, receiveSafe, receiveMessages, statuses, broadcasts, setStatus, addBroadcast, retryPendingSms };
+  return {
+    receiveSos, receiveContacts, receiveSafe, receiveSmsReport, receiveMessages, statuses, broadcasts, broadcastsSeen,
+    setStatus, addNote, messagePerson, addBroadcast, retryPendingSms,
+  };
 }
 
 /** The family SMS, in the same shape the phone sends (handoff 2w). */
@@ -246,4 +378,4 @@ function str(v, max) {
   return v === null || v === undefined ? '' : String(v).slice(0, max);
 }
 
-module.exports = { createService, smsText, normalizePhone, BadRequest };
+module.exports = { createService, smsText, normalizePhone, BadRequest, RADIO_LIMIT_BYTES };

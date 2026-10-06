@@ -17,7 +17,7 @@ A short brief for building the control-room dashboard (screens D1 to D5 in [scre
 - Implements the gateway contract in [protocol.md](protocol.md) §2.
 - Stores everything in Firestore: `sos/{id}`, `messages/{id}`, `broadcasts/{id}`.
 - Texts family through Twilio once an SOS and its contacts are both in, and retries failed texts every 5 minutes.
-- Has two responder routes (below) and 16 tests. `npm run local` runs it on a laptop.
+- Has the dashboard routes (below) and 24 tests. `npm run local` runs it on a laptop.
 
 ## 2. How the dashboard fits in
 
@@ -31,8 +31,9 @@ Phones ──mesh──▶ Gateway phone ──HTTPS──▶ Cloud Function `ap
 
 - **Reads come from Firestore directly**, using the Firebase JS SDK's live listeners (`onSnapshot`). New SOS appear within a second, with no polling. The Firestore rules already allow reads for signed-in users whose role claim is `viewer` or `responder`.
 - **Writes go through the Cloud Function, never straight to Firestore.** The function signs what phones will receive and keeps the history. The dashboard calls it with the user's Firebase ID token in an `Authorization: Bearer <token>` header:
-  - `POST /v1/admin/sos/{id}/status` with `{ "status": "attended" | "resolved", "by": "District Control Room" }` sends a status change back to the person (D3).
+  - `POST /v1/admin/sos/{id}/status` with `{ "status": "new" | "attended" | "resolved", "assignee": "NDRF team 3" }` sends a status change back to the person (D3).
   - `POST /v1/admin/broadcasts` with `{ "from": "...", "text": "..." }` sends an official message into the Disaster Relief chat (D4).
+  - Also: `assignee` and `note` on the status route, `POST /v1/admin/sos/{id}/notes` and `POST /v1/admin/sos/{id}/message`. Full list in [protocol.md](protocol.md) §2.
 - **Accounts (D1, D5)** use Firebase Auth with email and password. Roles are custom claims, set with the Admin SDK: `setCustomUserClaims(uid, { role: 'responder' })`. Viewers can read; only responders can change status or broadcast.
 
 ## 3. Suggested stack

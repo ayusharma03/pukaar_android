@@ -46,7 +46,7 @@ function getApp() {
       if (!token) return null;
       try {
         const user = await admin.auth().verifyIdToken(token);
-        return ['responder', 'admin'].includes(user.role) ? { uid: user.uid, name: user.name || user.email || '' } : null;
+        return ['responder', 'admin'].includes(user.role) ? { uid: user.uid, name: user.name || user.email || '', role: user.role } : null;
       } catch (e) {
         return null;
       }

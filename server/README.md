@@ -13,6 +13,7 @@ server/
         ├── stores.js       Firestore and in-memory storage
         ├── sms.js          Twilio (REST, no SDK), log-only, fake
         ├── pukaar-crypto.js  Keys, signing, sealed contacts (matches the app)
+        ├── areas.js        Block names from a location, for the dashboard
         └── local.js        Run everything on your laptop
 ```
 
@@ -21,7 +22,7 @@ server/
 ```sh
 cd server/functions
 npm install
-npm test          # 16 tests
+npm test          # 24 tests
 npm run local     # prints a fresh key pair, listens on :8787
 ```
 
@@ -84,7 +85,12 @@ The dashboard routes (`/v1/admin/...`) need a Firebase Auth ID token for a user 
 admin.auth().setCustomUserClaims(uid, { role: 'responder' });
 ```
 
+Dashboard routes (all need a responder or admin token; see [`docs/protocol.md`](../docs/protocol.md) §2): status with `assignee` and `note`, notes, message to the person, broadcasts. History records the signed-in operator separately from who is going.
+
 ## Known limits
+
+- Area names come from approximate Darbhanga block centres in `src/areas.js`; villages need official boundary data before they can be named.
+- Messages to a person, phone-reported family texts and broadcast reach are on the server, but the Android app doesn't use those routes yet.
 
 - Gateway routes are anonymous by design (any Pukaar phone can relay), so someone could post fake SOS. Rate limiting and abuse checks are not built yet.
 - If the sender's phone has signal it texts family itself, and the server may text them too, so family can get two messages. More delivery was preferred over fewer.

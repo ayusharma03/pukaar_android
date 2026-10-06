@@ -51,12 +51,14 @@ Any phone with internet is a gateway (FR-4). Set the server base URL at build ti
 
 | Method and path | Body or query | Response |
 |---|---|---|
-| `POST /v1/sos` | `{id, seq, lat?, lon?, accuracyM?, time, battery, people, flags[], name, message, via: "direct"\|"mesh", relayedBy?, phone?, bloodGroup?, medicalNotes?, contacts?: [{name, phone}]}` | `{status: "new"\|"attended"\|"resolved", by?, smsSent?}` |
+| `POST /v1/sos` | `{id, seq, lat?, lon?, accuracyM?, locationAt?, time, battery, people, flags[], name, message, via: "direct"\|"mesh"\|"radio", relayedBy?, hops?, radioNode?, phone?, bloodGroup?, medicalNotes?, contacts?: [{name, phone}]}` | `{status: "new"\|"attended"\|"resolved", by?, smsSent?}` |
 | `POST /v1/contacts` | `{id, encrypted, data}` from a Contacts packet | 2xx |
+| `POST /v1/sos/sms` | `{id, results: [{name?, phone, ok, time?}]}` from the sender's own phone after it texted family itself | 2xx |
 | `POST /v1/safe` | `{id, time}` | 2xx |
 | `POST /v1/messages` | `{messages: [{id, sender, text, time, lat?, lon?}]}` | 2xx |
-| `GET /v1/sos/status?ids=a,b` | | `{statuses: [{id, status, time, by, smsSent, sig}]}` |
+| `GET /v1/sos/status?ids=a,b` | | `{statuses: [{id, status, time, by, smsSent, sig, messages?: [{id, time, from, text, sig}]}]}` |
 | `GET /v1/broadcasts?since=<unix s>` | | `{items: [{id, from, text, time, sig}]}` |
+| `POST /v1/broadcasts/seen` | `{device, ids[]}`: official messages a phone has shown, with a random install id | 2xx |
 
 - Any 2xx response to `POST /v1/sos` counts as "Help notified" for that SOS.
 - `smsSent: true` tells the sender's phone the server texted the family.
@@ -65,6 +67,20 @@ Any phone with internet is a gateway (FR-4). Set the server base URL at build ti
 - The gateway polls status for SOS it relayed and broadcasts a `PKACK1` into the mesh when a status changes, so the sender learns even with no internet.
 - New dashboard broadcasts are relayed into the mesh as `PKOFF1`.
 - The gateway polls every 30 seconds while online.
+- Optional fields from newer phones: `hops` (mesh hops the copy took; the server keeps the fewest), `radioNode` (the LoRa node that heard it, with `via: "radio"`) and `locationAt` (when the fix is older than the SOS). The server also adds `area: {block, village}` from the location for the dashboard.
+- `messages` in a status are control-room messages to that one sender, signed over `PKMSG1|sosId|msgId|time|from|text` (same key as acks, `from` cleaned like `by`). Each is at most 200 bytes so it fits a radio packet. The gateway should relay them to the sender like an Ack. **Not yet handled by the Android app.**
+- `POST /v1/sos/sms` and `POST /v1/broadcasts/seen` are **not yet sent by the Android app.** Until they are, the dashboard shows only server-sent family texts and broadcast reach stays at 0.
+
+### Dashboard routes
+
+Need a Firebase ID token (`Authorization: Bearer`) for a user whose `role` claim is `responder` or `admin`. The server records the signed-in operator (`by`, `uid`) in history and notes.
+
+| Method and path | Body | Response |
+|---|---|---|
+| `POST /v1/admin/sos/{id}/status` | `{status, assignee?, note?}`. Any status to any other (undo, reopen). `assignee` is who is going; the person's phone shows it | the new status, signed |
+| `POST /v1/admin/sos/{id}/notes` | `{text}` | `{at, text, by, uid}` |
+| `POST /v1/admin/sos/{id}/message` | `{text}`, at most 200 bytes | `{id, time, from, text}` |
+| `POST /v1/admin/broadcasts` | `{from, text}`, text at most 200 bytes | `{id, from, text, time}` |
 
 ## 3. Server keys
 

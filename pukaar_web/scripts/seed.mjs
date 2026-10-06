@@ -6,8 +6,8 @@
 //   node scripts/seed.mjs --count 150 many SOS (clusters, virtualised list)
 //   node scripts/seed.mjs --count 0   no incidents (empty states)
 //
-// Document shapes follow server/functions/src/core.js. Fields the server doesn't write yet are
-// the "proposed" ones in src/lib/types.ts (area, hops, receivedAt, assignee, notes, radio...).
+// Document shapes follow server/functions/src/core.js (see src/lib/types.ts). Village names are
+// sample data: the server only knows blocks until real village boundaries are added.
 
 const PROJECT = 'demo-pukaar';
 const FIRESTORE = '127.0.0.1:8080';
@@ -83,6 +83,8 @@ const GATEWAYS = ['Raju (gateway)', 'Kamlesh shop', 'PHC Keoti', 'Panchayat bhaw
 const phone = () => `9${int(100000000, 999999999)}`;
 
 const now = Math.floor(Date.now() / 1000);
+// The responder who acts on seeded SOS (filled in once the accounts exist).
+const operator = { by: 'Priya Sharma', uid: '' };
 
 function makeSos(i) {
   const where = pick(BLOCKS);
@@ -137,7 +139,7 @@ function makeSos(i) {
     if (rand() < 0.3) doc.medicalNotes = pick(['Diabetic, takes insulin', 'Asthma', 'Heart patient', '7 months pregnant']);
     doc.contacts = Array.from({ length: int(1, 3) }, () => ({ name: pick(NAMES) || 'Family', phone: phone() }));
     const at = receivedAt + int(5, 60);
-    doc.smsResults = doc.contacts.map((c) => ({ phone: c.phone, ok: rand() > 0.2, by: direct ? 'server' : 'phone', at }));
+    doc.smsResults = doc.contacts.map((c) => ({ name: c.name, phone: c.phone, ok: rand() > 0.2, by: direct ? 'server' : 'phone', at }));
     doc.smsSent = doc.smsResults.some((r) => r.ok);
   }
 
@@ -148,15 +150,15 @@ function makeSos(i) {
     doc.statusTime = t;
     doc.by = by;
     doc.assignee = by;
-    doc.history.push({ status: 'attended', time: t, by: 'Priya Sharma' });
-    doc.notes = [{ by: 'Priya Sharma', at: t, text: `${by} on the way` }];
+    doc.history.push({ status: 'attended', time: t, ...operator, assignee: by });
+    doc.notes = [{ at: t, text: `${by} on the way`, ...operator }];
   }
   if (status === 'resolved') {
     const t = doc.statusTime + int(600, 5400);
     doc.status = 'resolved';
     doc.statusTime = t;
-    doc.history.push({ status: 'resolved', time: t, by: 'Priya Sharma' });
-    doc.notes.push({ by: 'Priya Sharma', at: t, text: 'Rescued, taken to relief camp' });
+    doc.history.push({ status: 'resolved', time: t, ...operator, assignee: doc.assignee });
+    doc.notes.push({ at: t, text: 'Rescued, taken to relief camp', ...operator });
   }
   // A few people tapped "I'm safe now" before anyone reached them.
   if (status !== 'resolved' && rand() < 0.1) {
@@ -205,6 +207,7 @@ async function seedUsers() {
   for (const u of users) {
     const user = await auth.createUser({ email: u.email, password: 'pukaar123', displayName: u.displayName });
     if (u.role) await auth.setCustomUserClaims(user.uid, { role: u.role });
+    if (u.role === 'responder') operator.uid = user.uid;
   }
   return users;
 }
@@ -237,8 +240,8 @@ const messages = CHAT.map(([sender, text], i) => {
 await writeAll('messages', messages);
 
 const broadcasts = [
-  { id: (Date.now() - 7200000).toString(36), from: 'District Control Room', text: 'Boats at Rampur Govt. School from 4 pm. Stay on the roof and wave a cloth.', time: now - 7200, reach: 46 },
-  { id: (Date.now() - 1800000).toString(36), from: 'District Control Room', text: 'Relief camp open at Laheriasarai stadium: food, water and doctors.', time: now - 1800, reach: 19 },
+  { id: (Date.now() - 7200000).toString(36), from: 'District Control Room', text: 'Boats at Rampur Govt. School from 4 pm. Stay on the roof and wave a cloth.', time: now - 7200, reach: 46, sentBy: operator },
+  { id: (Date.now() - 1800000).toString(36), from: 'District Control Room', text: 'Relief camp open at Laheriasarai stadium: food, water and doctors.', time: now - 1800, reach: 19, sentBy: operator },
 ];
 await writeAll('broadcasts', broadcasts);
 

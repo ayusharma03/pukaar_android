@@ -42,3 +42,26 @@ describe('time', () => {
     expect(clockTime(now / 1000)).toBe('2:23 pm');
   });
 });
+
+describe('filters and search', async () => {
+  const { matchesFilters, matchesSearch, DEFAULT_FILTERS } = await import('./filters');
+  const now = 2_000_000;
+  const s = sos('k9wd2024', {
+    time: now - 600, name: 'Gita Devi', phone: '+91 91234 56780', flags: ['Trapped'], via: ['mesh', 'radio'],
+    area: { block: 'Kiratpur', village: 'Jhagarua' }, message: 'Roof of the school',
+  });
+  it('filters by time, block, needs and arrival', () => {
+    expect(matchesFilters(s, DEFAULT_FILTERS, now)).toBe(true);
+    expect(matchesFilters(s, { ...DEFAULT_FILTERS, timeRange: '1h' }, now + 3600)).toBe(false);
+    expect(matchesFilters(s, { ...DEFAULT_FILTERS, block: 'Biraul' }, now)).toBe(false);
+    expect(matchesFilters(s, { ...DEFAULT_FILTERS, needs: ['Injured'] }, now)).toBe(false);
+    expect(matchesFilters(s, { ...DEFAULT_FILTERS, needs: ['Injured', 'Trapped'] }, now)).toBe(true);
+    expect(matchesFilters(s, { ...DEFAULT_FILTERS, via: 'radio' }, now)).toBe(true);
+    expect(matchesFilters(s, { ...DEFAULT_FILTERS, via: 'direct' }, now)).toBe(false);
+  });
+  it('searches name, village, id, message and phone digits', () => {
+    for (const q of ['gita', 'jhagarua', 'K9WD', 'school', '91234 567', '']) expect(matchesSearch(s, q)).toBe(true);
+    expect(matchesSearch(s, 'biraul')).toBe(false);
+    expect(matchesSearch(s, '123')).toBe(false);
+  });
+});

@@ -4,6 +4,18 @@ Web app for district control rooms: every SOS on a map and in a priority list, m
 resolved, read the Disaster Relief chat, send official broadcasts. Plan: [`../docs/dashboard-plan.md`](../docs/dashboard-plan.md).
 Design: [`design_handoff/README.md`](design_handoff/README.md).
 
+## What's built
+
+| Screen | State |
+|---|---|
+| D1 Login | Done: sign-in, wrong password, signed in without a role, forgot password |
+| D2 Live operations | Done: map with pins and clusters, priority list, counts, filters, search, live indicator, lost connection, empty and filtered-to-nothing states, new-SOS chime, toast and highlight |
+| D3 SOS detail | Done: every section, attend form with recent teams, resolve, reopen, back to new, Undo (Z), offline queue, viewer mode, mesh-only notice |
+| D4 Relief feed | Done: chat and official broadcasts, location chips, composer with byte counter and confirmation |
+| D5 Team | Placeholder: needs the admin function on the server |
+
+Keyboard: `J`/`K` move, `Enter` open, `Esc` close, `A` attend, `R` resolve, `Z` undo, `O` open newest, `/` search, `F` feed, `M` sound, `?` all shortcuts.
+
 ## Run it locally
 
 Needs Node 22+ and Java 21 (for the Firebase emulators). First time only:
@@ -35,7 +47,11 @@ pukaar_web/
 ├── src/
 │   ├── theme/tokens.css   design tokens as CSS variables (dark + light)
 │   ├── index.css          Tailwind theme mapped onto the tokens
-│   └── lib/               Firebase, API client, types, priority sort, time formatting
+│   ├── auth/              sign-in, role, D1
+│   ├── ops/               D2 to D4: map, list, detail panel, relief feed, live data
+│   ├── team/              D5 (placeholder)
+│   ├── ui/                atoms, theme, toasts
+│   └── lib/               Firebase, API client, types, filters, priority sort, formatting
 ├── scripts/
 │   ├── seed.mjs           fake data for the emulators
 │   └── local-secrets.mjs  local server keys for the Functions emulator

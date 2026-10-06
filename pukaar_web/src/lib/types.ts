@@ -1,12 +1,11 @@
-// Firestore documents as the server writes them (server/functions/src/core.js), plus the fields the
-// dashboard handoff asks the server to add. Fields marked "proposed" are NOT written by the server
-// yet (pukaar_web/design_handoff/README.md, "Backend gaps"); the seed script fills them so screens
-// can be built, and the UI must still work when they are missing.
+// Firestore documents as the server writes them (server/functions/src/core.js). Some fields only
+// arrive from newer phones (hops, radioNode, locationAt, phone-reported texts, broadcast reach),
+// so the UI must work when they're missing.
 
 export type Status = 'new' | 'attended' | 'resolved';
 export type Need = 'Injured' | 'Trapped' | 'NeedWater' | 'NeedMedicine' | 'ChildOrElderly';
-export type Via = 'direct' | 'mesh' | 'radio'; // 'radio' is proposed
-export type Role = 'viewer' | 'responder' | 'admin'; // 'admin' is proposed
+export type Via = 'direct' | 'mesh' | 'radio';
+export type Role = 'viewer' | 'responder' | 'admin';
 
 export interface Contact {
   name: string;
@@ -14,24 +13,39 @@ export interface Contact {
 }
 
 export interface SmsResult {
+  name?: string;
   phone: string;
   ok: boolean;
-  /** proposed: who texted them, the server (Twilio) or the person's own phone */
+  /** Who texted them: the server (Twilio) or the person's own phone */
   by?: 'server' | 'phone';
-  /** proposed (Unix seconds) */
   at?: number;
 }
 
-/** One status change. `status: 'safe'` is written when the person tapped "I'm safe now". */
+/**
+ * One event. Status changes carry the operator who made them (by, uid) and who is going (assignee).
+ * 'safe' is the person tapping "I'm safe now", 'message' a control-room message to them, 'sms' their
+ * phone reporting it texted family. Entries from the phone have by ''.
+ */
 export interface HistoryEntry {
-  status: Status | 'safe';
+  status: Status | 'safe' | 'message' | 'sms';
   time: number;
   by: string;
+  uid?: string;
+  assignee?: string;
+  text?: string;
 }
 
 export interface Note {
-  by: string;
   at: number;
+  text: string;
+  by: string;
+  uid?: string;
+}
+
+export interface OutboxMessage {
+  id: string;
+  time: number;
+  from: string;
   text: string;
 }
 
@@ -41,15 +55,19 @@ export interface Sos {
   seq: number;
   status: Status;
   statusTime: number;
+  /** What the person's phone shows as "on it": who is going, or the operator */
   by: string;
   /** When the phone sent it */
   time: number;
-  /** When the server first saw it */
   createdAt: number;
+  receivedAt?: number;
   updatedAt?: number;
   lat: number | null;
   lon: number | null;
   accuracyM: number | null;
+  /** Set when the fix is older than the SOS */
+  locationAt?: number;
+  area?: { block: string; village: string };
   people: number;
   flags: Need[];
   name: string;
@@ -60,20 +78,16 @@ export interface Sos {
   medicalNotes?: string;
   contacts: Contact[];
   via: Via[];
+  hops?: number;
   relayedBy: string[];
+  radioNode?: string;
   smsSent: boolean;
   smsResults?: SmsResult[];
   safeAt?: number;
-  history: HistoryEntry[];
-
-  // proposed
-  receivedAt?: number;
-  locationAt?: number;
-  area?: { block: string; village: string };
-  hops?: number;
-  radioNode?: string;
   assignee?: string;
   notes?: Note[];
+  outbox?: OutboxMessage[];
+  history: HistoryEntry[];
 }
 
 /** messages/{id}: the Disaster Relief chat as gateways uploaded it. */
@@ -92,6 +106,7 @@ export interface Broadcast {
   from: string;
   text: string;
   time: number;
-  /** proposed: phones that acknowledged it */
+  /** Different phones that reported showing it (an estimate) */
   reach?: number;
+  sentBy?: { by: string; uid: string };
 }

@@ -1,15 +1,16 @@
 // Times are shown as "4 min ago", with the exact Indian time on hover (title attribute).
+import { useEffect, useState } from 'react';
 
 const IST = 'Asia/Kolkata';
 
-/** "just now", "4 min ago", "2 h ago", "3 days ago". Inputs in Unix seconds. */
+/** "just now", "4 min ago", "1 h 5 min ago", "3 days ago". Inputs in Unix seconds. */
 export function timeAgo(unixSec: number, nowMs: number = Date.now()): string {
   const s = Math.max(0, Math.floor(nowMs / 1000 - unixSec));
   if (s < 45) return 'just now';
   const m = Math.round(s / 60);
   if (m < 60) return `${m} min ago`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h} h ago`;
+  if (h < 24) return m % 60 && h < 3 ? `${h} h ${m % 60} min ago` : `${h} h ago`;
   const d = Math.floor(h / 24);
   return d === 1 ? '1 day ago' : `${d} days ago`;
 }
@@ -33,5 +34,15 @@ export function exactTime(unixSec: number): string {
     hour12: true,
     timeZone: IST,
   });
-  return `${s.replace(/\b(AM|PM)\b/, (x) => x.toLowerCase())} IST`;
+  return `${s.replace(/\b(AM|PM)\b/i, (x) => x.toLowerCase())} IST`;
+}
+
+/** Current time in ms, refreshed every `everyMs` so "4 min ago" labels stay right. */
+export function useNow(everyMs = 15_000): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), everyMs);
+    return () => clearInterval(t);
+  }, [everyMs]);
+  return now;
 }

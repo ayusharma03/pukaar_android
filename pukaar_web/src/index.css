@@ -128,7 +128,7 @@
   }
   /* Material Symbols: outlined by default, filled with .icon-fill (chips, status, selected). */
   .icon {
-    font-family: var(--font-icon);
+    font-family: 'Material Symbols Rounded';
     font-weight: 400;
     font-style: normal;
     font-size: 24px;

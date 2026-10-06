@@ -1,6 +1,8 @@
 // Storage backends for core.js: in memory (tests, local runs) and Firestore (Cloud Functions).
 'use strict';
 
+const { FieldValue } = require('firebase-admin/firestore');
+
 function memoryStore() {
   const sos = new Map();
   const messages = new Map();
@@ -12,6 +14,12 @@ function memoryStore() {
     async addMessages(list) { list.forEach((m) => { if (!messages.has(m.id)) messages.set(m.id, copy(m)); }); },
     async getBroadcastsSince(since) { return broadcasts.filter((b) => b.time > since).map(copy); },
     async addBroadcast(item) { broadcasts.push(copy(item)); },
+    async markBroadcastSeen(id, device) {
+      const b = broadcasts.find((x) => x.id === id);
+      if (!b) return;
+      b.seenBy = b.seenBy || [];
+      if (!b.seenBy.includes(device)) { b.seenBy.push(device); b.reach = b.seenBy.length; }
+    },
     async listPendingSms(limit) {
       return [...sos.values()].filter((d) => !d.smsSent && d.time && d.contacts.length).slice(0, limit).map(copy);
     },
@@ -40,6 +48,16 @@ function firestoreStore(db) {
     },
     async addBroadcast(item) {
       await db.collection('broadcasts').doc(item.id).set(item);
+    },
+    async markBroadcastSeen(id, device) {
+      // One doc per install under the broadcast; reach counts only first sightings.
+      const ref = db.collection('broadcasts').doc(id);
+      try {
+        await ref.collection('seen').doc(device).create({ at: Date.now() });
+      } catch (e) {
+        return; // seen before
+      }
+      await ref.update({ reach: FieldValue.increment(1) }).catch(() => null);
     },
     async listPendingSms(limit) {
       const q = await db.collection('sos').where('smsSent', '==', false).limit(limit * 4).get();

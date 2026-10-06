@@ -35,6 +35,11 @@ function officialSignedText({ id, from, text }) {
   return `PKOFF1|${id}|${clean(from)}|${text}`;
 }
 
+/** Text the server signs for a control-room message to one SOS sender: PKMSG1|sosId|msgId|time|from|text. */
+function messageSignedText({ sosId, id, time, from, text }) {
+  return `PKMSG1|${sosId}|${id}|${time}|${clean(from)}|${text}`;
+}
+
 function clean(s) {
   return s.replace(/\|/g, '/').replace(/\n/g, ' ').trim();
 }
@@ -87,7 +92,7 @@ function keygen() {
   };
 }
 
-module.exports = { ackSignedText, officialSignedText, sign, openContacts, sealContacts, keygen, rawPublic, edPrivate, xPrivate, b64u, unb64u };
+module.exports = { ackSignedText, officialSignedText, messageSignedText, sign, openContacts, sealContacts, keygen, rawPublic, edPrivate, xPrivate, b64u, unb64u };
 
 if (require.main === module && process.argv[2] === 'keygen') {
   const k = keygen();
