@@ -152,7 +152,9 @@ fun MapScreen(
 
     // Base map style follows the theme; the camera starts on the user (or the saved area).
     LaunchedEffect(map, dark) {
-        map?.setStyle(if (dark) OfflineMaps.STYLE_DARK else OfflineMaps.STYLE_LIGHT)
+        val url = if (dark) OfflineMaps.STYLE_DARK else OfflineMaps.STYLE_LIGHT
+        // The MapView is kept between visits; only reload the style when the theme changed.
+        map?.let { if (it.style?.uri != url) it.setStyle(url) }
     }
 
     val visible = state.places.filter { it.type in layers }

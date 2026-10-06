@@ -133,6 +133,9 @@ fun PukaarNavHost(chatViewModel: ChatViewModel, pendingRoute: String?, onRouteHa
         if (profile.name.isNotBlank() && chatViewModel.nickname.value != profile.name) chatViewModel.setNickname(profile.name)
     }
 
+    // One MapView for the session (see PukaarMapHolder): fast tab switching used to crash MapLibre.
+    val mapHolder = app.pukaar.ui.screens.map.rememberPukaarMapHolder()
+    androidx.compose.runtime.CompositionLocalProvider(app.pukaar.ui.screens.map.LocalPukaarMapHolder provides mapHolder) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = { if (showBar) BottomBar(nav, current) },
@@ -237,6 +240,7 @@ fun PukaarNavHost(chatViewModel: ChatViewModel, pendingRoute: String?, onRouteHa
                 composable(Routes.ABOUT) { AboutRoute { nav.popBackStack() } }
             }
         }
+    }
     }
 }
 

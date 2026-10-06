@@ -76,14 +76,24 @@ import app.pukaar.ui.theme.PukaarDimens
 import app.pukaar.ui.theme.PukaarIcon
 import app.pukaar.ui.theme.PukaarThemeMode
 import app.pukaar.ui.theme.Sym
+import androidx.lifecycle.repeatOnLifecycle
 import com.bitchat.android.R
 import com.bitchat.android.ui.LanguagePreferenceManager
 
-/** The area to save offline, picked once per screen (around the user, or the saved places). */
+/**
+ * The area to save offline: around the user, or the saved places when there is no fix. Null while
+ * the first fix is being looked for (Download stays off so the sample region isn't saved by
+ * mistake). Picked again when the screen resumes, e.g. after turning location on.
+ */
 @Composable
 fun rememberOfflineArea(): OfflineArea? {
     val context = LocalContext.current
-    val area by produceState<OfflineArea?>(null) { value = pickOfflineArea(context) }
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    val area by produceState<OfflineArea?>(null, lifecycle) {
+        lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            if (value?.fromLocation != true) value = pickOfflineArea(context)
+        }
+    }
     return area
 }
 
@@ -115,10 +125,11 @@ fun OfflineMapRow(area: OfflineArea?, state: OfflineMaps.State, internet: Boolea
             androidx.compose.material3.LinearProgressIndicator(progress = { state.percent / 100f }, modifier = Modifier.fillMaxWidth())
         }
         else -> ListRow(
-            area?.name ?: stringResource(R.string.pk_offline_unknown_region),
+            area?.name ?: stringResource(R.string.pk_offline_locating),
             subtitle = when {
                 state is OfflineMaps.State.Failed -> stringResource(R.string.pk_offline_failed)
                 !internet -> stringResource(R.string.pk_settings_offline_needs_internet)
+                area?.fromLocation == false -> stringResource(R.string.pk_offline_no_location)
                 else -> stringResource(R.string.pk_offline_not_saved, area?.estimateMb ?: 0)
             },
             icon = Sym.map,

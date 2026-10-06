@@ -382,7 +382,10 @@ private fun OfflineStep(onBack: () -> Unit, onNext: () -> Unit) {
                 PukaarIcon(Sym.myLocation, null, size = 18.dp, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(stringResource(R.string.pk_onb_offline_detected), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(area?.name ?: "…", style = MaterialTheme.typography.titleLarge)
+            Text(area?.name ?: stringResource(R.string.pk_offline_locating), style = MaterialTheme.typography.titleLarge)
+            if (area?.fromLocation == false) {
+                Text(stringResource(R.string.pk_offline_no_location), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
         PukaarCard(Modifier.fillMaxWidth(), padding = PukaarDimens.space3) {
             OfflineItemRow(Sym.map, R.string.pk_offline_map, R.string.pk_offline_map_detail) {
