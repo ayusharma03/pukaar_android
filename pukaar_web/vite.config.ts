@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  server: { port: 5173, strictPort: true },
+  // Opens the browser when the dashboard is ready.
+  server: { port: 5173, strictPort: true, open: true },
   test: { environment: 'node' },
 });

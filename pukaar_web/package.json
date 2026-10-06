@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "vite",
     "dev:emulator": "vite --mode emulator",
-    "start": "node scripts/local-secrets.mjs && concurrently -k -n emu,web -c cyan,magenta \"npm:emulators\" \"wait-on -t 120000 tcp:127.0.0.1:8080 tcp:127.0.0.1:9099 tcp:127.0.0.1:5001 && npm run seed && npm run dev:emulator\"",
+    "start": "node scripts/preflight.mjs && node scripts/local-secrets.mjs && concurrently -k -n emu,web -c cyan,magenta \"npm:emulators\" \"wait-on -t 120000 tcp:127.0.0.1:8080 tcp:127.0.0.1:9099 tcp:127.0.0.1:5001 && npm run seed && npm run dev:emulator\"",
     "emulators": "firebase emulators:start --config ../server/firebase.json --project demo-pukaar --only auth,firestore,functions",
     "seed": "node scripts/seed.mjs",
     "seed:150": "node scripts/seed.mjs --count 150",
