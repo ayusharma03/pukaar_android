@@ -122,8 +122,9 @@ object AppConstants {
         const val BASE_FONT_SIZE_SP: Int = 14
         const val MESSAGE_DEDUP_TIMEOUT_MS: Long = 30_000L
         const val SYSTEM_EVENT_DEDUP_TIMEOUT_MS: Long = 5_000L
-        const val ACTION_FORCE_FINISH: String = "com.bitchat.android.ACTION_FORCE_FINISH"
-        const val PERMISSION_FORCE_FINISH: String = "com.bitchat.android.permission.FORCE_FINISH"
+        // Pukaar: own names, so Pukaar installs next to bitchat (a duplicate signature permission fails).
+        const val ACTION_FORCE_FINISH: String = "app.pukaar.ACTION_FORCE_FINISH"
+        const val PERMISSION_FORCE_FINISH: String = "app.pukaar.permission.FORCE_FINISH"
     }
 
     object Media {

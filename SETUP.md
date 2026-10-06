@@ -124,3 +124,29 @@ Button(colors = ButtonDefaults.buttonColors(containerColor = s.sosFill, contentC
 ```
 
 Never use `colorScheme.error` for SOS, and never use SOS red for anything else.
+
+## Signing and releases
+
+**Debug builds** are signed with the shared Pukaar debug key in `app/pukaar-debug.p12` (password `android`). It is not secret. Because everyone uses the same key, a debug APK built on any teammate's laptop can update another teammate's install. If a phone has a Pukaar build signed with an older key, uninstall it once.
+
+**Release builds** use your own private key, which must never be committed. Create it once and keep a backup, because every future update must be signed with the same key:
+
+```
+keytool -genkeypair -keystore pukaar-release.p12 -storetype PKCS12 -alias pukaar -keyalg RSA -keysize 4096 -validity 10950 -dname "CN=Pukaar, O=<your team>, C=IN"
+```
+
+Put these in `~/.gradle/gradle.properties` (your user folder, not the repo):
+
+```
+PUKAAR_RELEASE_STORE_FILE=C:/path/to/pukaar-release.p12
+PUKAAR_RELEASE_STORE_PASSWORD=...
+PUKAAR_RELEASE_KEY_ALIAS=pukaar
+PUKAAR_RELEASE_KEY_PASSWORD=...
+PUKAAR_GITHUB_RELEASE_CERT_SHA256=<SHA-256 of the release certificate>
+```
+
+Get the SHA-256 with `keytool -list -v -keystore pukaar-release.p12`. Then `./gradlew :app:assembleRelease` produces a signed APK.
+
+**In-app updates** check the latest release of `github.com/ayusharma03/pukaar_android`. Upload the signed universal APK to a GitHub release with the name `pukaar-android-universal.apk`, and tag it `v<versionName>`. The app only installs updates signed by the certificate in `PUKAAR_GITHUB_RELEASE_CERT_SHA256`.
+
+**Mesh compatibility:** Pukaar keeps bitchat's Bluetooth service UUID, so Pukaar and bitchat phones relay each other's messages. bitchat's private-chat and location-chat notifications are switched off in Pukaar, because Pukaar has no screens for them.

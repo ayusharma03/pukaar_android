@@ -7,7 +7,10 @@ plugins {
 }
 
 val githubReleaseCertSha256 = providers
-    .environmentVariable("BITCHAT_GITHUB_RELEASE_CERT_SHA256")
+    .environmentVariable("PUKAAR_GITHUB_RELEASE_CERT_SHA256")
+    .orElse(providers.gradleProperty("PUKAAR_GITHUB_RELEASE_CERT_SHA256"))
+    // bitchat's release tooling still sets this name
+    .orElse(providers.environmentVariable("BITCHAT_GITHUB_RELEASE_CERT_SHA256"))
     .orElse(providers.gradleProperty("BITCHAT_GITHUB_RELEASE_CERT_SHA256"))
     .orElse("")
 fun pukaarSetting(name: String): String = providers
@@ -29,7 +32,7 @@ require(
     normalizedGithubReleaseCertSha256.isEmpty() ||
         normalizedGithubReleaseCertSha256.matches(Regex("[a-f0-9]{64}"))
 ) {
-    "BITCHAT_GITHUB_RELEASE_CERT_SHA256 must be a SHA-256 certificate fingerprint"
+    "PUKAAR_GITHUB_RELEASE_CERT_SHA256 must be a SHA-256 certificate fingerprint"
 }
 
 android {
@@ -67,14 +70,40 @@ android {
         includeInBundle = false
     }
 
+    // Pukaar signing.
+    // Debug: one shared key in the repo (not secret), so every teammate's debug build can update
+    // the others' installs. Release: your private key, only if PUKAAR_RELEASE_STORE_FILE and its
+    // passwords are set in ~/.gradle/gradle.properties (never in the repo); see SETUP.md.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("pukaar-debug.p12")
+            storePassword = "android"
+            keyAlias = "pukaardebug"
+            keyPassword = "android"
+            storeType = "PKCS12"
+        }
+        val releaseStore = providers.gradleProperty("PUKAAR_RELEASE_STORE_FILE").orNull
+        if (!releaseStore.isNullOrBlank()) {
+            create("release") {
+                storeFile = file(releaseStore)
+                storePassword = providers.gradleProperty("PUKAAR_RELEASE_STORE_PASSWORD").get()
+                keyAlias = providers.gradleProperty("PUKAAR_RELEASE_KEY_ALIAS").get()
+                keyPassword = providers.gradleProperty("PUKAAR_RELEASE_KEY_PASSWORD").get()
+            }
+        }
+    }
+
     buildTypes {
         debug {
+            signingConfig = signingConfigs.getByName("debug")
             ndk {
                 // Include x86_64 for emulator support during development
                 abiFilters += listOf("arm64-v8a", "x86_64", "armeabi-v7a", "x86")
             }
         }
         release {
+            // Signed with the Pukaar release key when it's configured; unsigned otherwise.
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
