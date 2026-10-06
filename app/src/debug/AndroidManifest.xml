@@ -16,5 +16,15 @@
                 <action android:name="app.pukaar.TEST_HOOK" />
             </intent-filter>
         </receiver>
+
+        <!-- Pukaar debug-only demo hook: inject an incoming SOS, message or safe update. -->
+        <receiver
+            android:name="app.pukaar.debug.PukaarDemoReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="app.pukaar.DEMO" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

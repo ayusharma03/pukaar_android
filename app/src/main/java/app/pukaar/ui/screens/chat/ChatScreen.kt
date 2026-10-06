@@ -71,7 +71,14 @@ sealed interface ChatItem {
     val time: Long
 
     data class Official(override val key: String, val from: String, val text: String, override val time: Long) : ChatItem
-    data class Sos(override val key: String, val packet: SosPacket, val distanceM: Float?, val own: Boolean, override val time: Long) : ChatItem
+    data class Sos(
+        override val key: String,
+        val packet: SosPacket,
+        val distanceM: Float?,
+        val own: Boolean,
+        override val time: Long,
+        val state: app.pukaar.sos.NearbySosState? = null,
+    ) : ChatItem
     data class Safe(override val key: String, val name: String, override val time: Long) : ChatItem
     data class Message(
         override val key: String,
@@ -82,6 +89,8 @@ sealed interface ChatItem {
         val own: Boolean,
         val delivery: DeliveryStatus?,
         override val time: Long,
+        /** Attached location (FR-8), opened on the map when tapped. */
+        val location: Pair<Double, Double>? = null,
     ) : ChatItem
 }
 
@@ -100,6 +109,7 @@ fun ChatScreen(
     onSend: (text: String, attachLocation: Boolean) -> Unit,
     onSos: () -> Unit,
     onNetwork: () -> Unit,
+    onOpenOnMap: (String) -> Unit = {},
 ) {
     var showInfo by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf("") }
@@ -146,9 +156,14 @@ fun ChatScreen(
                 items(state.items, key = { it.key }) { item ->
                     when (item) {
                         is ChatItem.Official -> OfficialCard(item)
-                        is ChatItem.Sos -> SosCard(item)
+                        is ChatItem.Sos -> SosCard(item) {
+                            if (item.packet.lat != null) onOpenOnMap("sos:${item.packet.id}")
+                        }
                         is ChatItem.Safe -> SafeLine(item)
-                        is ChatItem.Message -> if (item.own) OwnBubble(item) else OtherBubble(item)
+                        is ChatItem.Message -> {
+                            val openLocation = { item.location?.let { onOpenOnMap("loc:${it.first},${it.second}") } ?: Unit }
+                            if (item.own) OwnBubble(item, openLocation) else OtherBubble(item, openLocation)
+                        }
                     }
                 }
             }
@@ -205,7 +220,7 @@ private fun OfficialCard(item: ChatItem.Official) {
 }
 
 @Composable
-private fun SosCard(item: ChatItem.Sos) {
+private fun SosCard(item: ChatItem.Sos, onOpen: () -> Unit) {
     val s = MaterialTheme.status
     val p = item.packet
     Row(
@@ -213,6 +228,7 @@ private fun SosCard(item: ChatItem.Sos) {
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .background(s.sos.container)
+            .clickable(enabled = p.lat != null && !item.own, role = Role.Button, onClick = onOpen)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space3),
     ) {
@@ -235,6 +251,14 @@ private fun SosCard(item: ChatItem.Sos) {
                 add(timeText(item.time))
             }
             Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = s.sos.onContainer)
+            when (item.state) {
+                app.pukaar.sos.NearbySosState.Safe -> app.pukaar.ui.components.Tag(stringResource(R.string.pk_chat_sos_safe), s.confirmed)
+                app.pukaar.sos.NearbySosState.Attending -> app.pukaar.ui.components.Tag(stringResource(R.string.pk_sos_hero_attending), s.confirmed)
+                app.pukaar.sos.NearbySosState.Resolved -> app.pukaar.ui.components.Tag(stringResource(R.string.pk_delivery_resolved), s.confirmed)
+                else -> if (!item.own && p.lat != null) {
+                    Text(stringResource(R.string.pk_chat_sos_open_map), style = PukaarTextStyles.deliveryState, color = s.sos.onContainer)
+                }
+            }
         }
     }
 }
@@ -252,7 +276,7 @@ private fun SafeLine(item: ChatItem.Safe) {
 }
 
 @Composable
-private fun OtherBubble(item: ChatItem.Message) {
+private fun OtherBubble(item: ChatItem.Message, onOpenLocation: () -> Unit) {
     Column(
         Modifier
             .widthIn(max = 300.dp)
@@ -263,13 +287,13 @@ private fun OtherBubble(item: ChatItem.Message) {
     ) {
         Text(item.sender, style = PukaarTextStyles.deliveryState, color = MaterialTheme.colorScheme.primary)
         Text(item.text, style = MaterialTheme.typography.bodyLarge)
-        if (item.hasLocation) LocationChip(item.distanceM)
+        if (item.hasLocation) LocationChip(item.distanceM, onOpenLocation)
         Text(timeText(item.time), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.End))
     }
 }
 
 @Composable
-private fun OwnBubble(item: ChatItem.Message) {
+private fun OwnBubble(item: ChatItem.Message, onOpenLocation: () -> Unit) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(PukaarDimens.space1)) {
         Column(
             Modifier
@@ -280,7 +304,7 @@ private fun OwnBubble(item: ChatItem.Message) {
         ) {
             Text(item.text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary)
             if (item.hasLocation) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.clickable(role = Role.Button, onClick = onOpenLocation), verticalAlignment = Alignment.CenterVertically) {
                     PukaarIcon(Sym.locationOn, null, size = 16.dp, tint = MaterialTheme.colorScheme.onPrimary)
                     Text(stringResource(R.string.pk_chat_location_shared), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary)
                 }
@@ -291,11 +315,12 @@ private fun OwnBubble(item: ChatItem.Message) {
 }
 
 @Composable
-private fun LocationChip(distanceM: Float?) {
+private fun LocationChip(distanceM: Float?, onClick: () -> Unit) {
     Row(
         Modifier
             .clip(MaterialTheme.shapes.small)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space1),

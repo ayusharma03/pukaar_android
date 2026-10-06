@@ -68,8 +68,23 @@ import app.pukaar.ui.theme.status
 import com.bitchat.android.R
 import kotlin.math.max
 
+/** Where the compass points: a saved place, or someone's SOS. */
+data class DirectionTarget(
+    val name: String,
+    /** "Shelter", "SOS · 2 people"… */
+    val kind: String,
+    val icon: String,
+    val lat: Double,
+    val lon: Double,
+    /** SOS targets use SOS red; places use the primary container. */
+    val isSos: Boolean = false,
+)
+
+@Composable
+fun Place.toTarget() = DirectionTarget(name, stringResource(placeTypeLabel(type)), placeIcon(type), lat, lon)
+
 data class DirectionState(
-    val place: Place,
+    val place: DirectionTarget,
     val me: Location?,
     val headingDeg: Float,
     val needsCalibration: Boolean,
@@ -77,7 +92,7 @@ data class DirectionState(
 
 /** Stateful Direction: sensors, location, screen on and dimmed. */
 @Composable
-fun DirectionRoute(place: Place, onBack: () -> Unit, onChange: () -> Unit) {
+fun DirectionRoute(place: DirectionTarget, onBack: () -> Unit, onChange: () -> Unit) {
     val context = LocalContext.current
     var me by remember { mutableStateOf<Location?>(null) }
     var heading by remember { mutableFloatStateOf(0f) }
@@ -159,12 +174,14 @@ fun DirectionScreen(state: DirectionState, onBack: () -> Unit, onChange: () -> U
         ) {
             PukaarCard(Modifier.fillMaxWidth(), padding = PukaarDimens.space3) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space3)) {
-                    Box(Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
-                        PukaarIcon(placeIcon(place.type), null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    val (bg, fg) = if (place.isSos) MaterialTheme.status.sosFill to MaterialTheme.status.onSosFill
+                    else MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+                    Box(Modifier.size(44.dp).clip(CircleShape).background(bg), contentAlignment = Alignment.Center) {
+                        PukaarIcon(place.icon, null, tint = fg)
                     }
                     Column(Modifier.weight(1f)) {
                         Text(place.name, style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.pk_direction_subtitle, stringResource(placeTypeLabel(place.type))), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.pk_direction_subtitle, place.kind), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     OutlineButton(stringResource(R.string.pk_change), onChange)
                 }
@@ -210,7 +227,7 @@ fun DirectionScreen(state: DirectionState, onBack: () -> Unit, onChange: () -> U
 
 /** Small preview with the user and the shelter, north up. */
 @Composable
-private fun MiniMap(me: Location, place: Place) {
+private fun MiniMap(me: Location, place: DirectionTarget) {
     val colors = MaterialTheme.colorScheme
     val description = stringResource(R.string.pk_direction_minimap)
     Canvas(
@@ -242,7 +259,7 @@ private fun MiniMap(me: Location, place: Place) {
 private fun DirectionPreview() = PreviewTheme {
     val loc = Location("preview").apply { latitude = 26.152; longitude = 85.897 }
     DirectionScreen(
-        DirectionState(Place("a", "Rampur Govt. School", PlaceType.Shelter, 26.1580, 85.9020, capacity = 300), loc, 20f, false),
+        DirectionState(Place("a", "Rampur Govt. School", PlaceType.Shelter, 26.1580, 85.9020, capacity = 300).toTarget(), loc, 20f, false),
         {}, {},
     )
 }

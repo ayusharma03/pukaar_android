@@ -81,3 +81,15 @@ The engine runs in the app process, which bitchat's foreground service keeps ali
 - `app/src/test/java/app/pukaar/`: packet codec, size limit, signatures and sealing (with vectors from the Node reference in `server/functions/src/`).
 - UI: every screen has dark and light `@Preview`s.
 - Bluetooth, SMS, shake and the lock-screen flows need real phones.
+
+## Demo on one device (debug builds)
+
+`app.pukaar.debug.PukaarDemoReceiver` pretends another phone sent something, so screens that need two phones can be shown on one:
+
+```
+adb shell am broadcast -a app.pukaar.DEMO -p app.pukaar --es kind sos --es id ab12cd34 --ef lat 26.1555 --ef lon 85.9015
+adb shell am broadcast -a app.pukaar.DEMO -p app.pukaar --es kind message --es text Water_near_the_temple --ef lat 26.15 --ef lon 85.895
+adb shell am broadcast -a app.pukaar.DEMO -p app.pukaar --es kind safe --es id ab12cd34
+```
+
+(`adb shell` splits text on spaces, so use underscores or quote the whole remote command.) Release builds don't include it.

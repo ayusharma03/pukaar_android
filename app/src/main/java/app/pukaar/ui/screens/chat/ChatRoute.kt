@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 
 /** Disaster Relief = bitchat's public mesh timeline, shown the Pukaar way. */
 @Composable
-fun ChatRoute(chatViewModel: ChatViewModel, onSos: () -> Unit, onNetwork: () -> Unit) {
+fun ChatRoute(chatViewModel: ChatViewModel, onSos: () -> Unit, onNetwork: () -> Unit, onOpenOnMap: (String) -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val messages by chatViewModel.messages.collectAsState()
@@ -45,6 +45,7 @@ fun ChatRoute(chatViewModel: ChatViewModel, onSos: () -> Unit, onNetwork: () -> 
     val directPeers by AppStateStore.directPeers.collectAsState()
     val myLocation by produceState<Location?>(null) { value = Locations.lastKnown(context) }
     val myPeer = remember { MeshBridge.myPeerId(context) }
+    val nearby by app.pukaar.sos.NearbySosStore.all.collectAsState()
 
     // Pukaar only uses the public mesh timeline: leave any geohash channel or bitchat channel.
     LaunchedEffect(Unit) {
@@ -57,8 +58,10 @@ fun ChatRoute(chatViewModel: ChatViewModel, onSos: () -> Unit, onNetwork: () -> 
     }
     LaunchedEffect(messages.size) { PukaarStore.markChatSeen() }
 
-    val items = remember(messages, uploaded, outbox, ownSos, directPeers, myLocation, nickname) {
+    val items = remember(messages, uploaded, outbox, ownSos, directPeers, myLocation, nickname, nearby) {
+        val states = nearby.associate { it.id to it.state }
         buildChatItems(messages, myPeer, nickname, uploaded, outbox.toSet(), ownSos, directPeers.isNotEmpty(), myLocation)
+            .map { if (it is ChatItem.Sos && !it.own) it.copy(state = states[it.packet.id]) else it }
     }
 
     ChatScreen(
@@ -74,6 +77,7 @@ fun ChatRoute(chatViewModel: ChatViewModel, onSos: () -> Unit, onNetwork: () -> 
         },
         onSos = onSos,
         onNetwork = onNetwork,
+        onOpenOnMap = onOpenOnMap,
     )
 }
 
@@ -131,6 +135,7 @@ internal fun buildChatItems(
                     own = own,
                     delivery = delivery,
                     time = msg.timestamp.time,
+                    location = loc,
                 )
             }
         }

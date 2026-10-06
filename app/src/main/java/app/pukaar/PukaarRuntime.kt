@@ -7,6 +7,7 @@ import app.pukaar.data.PukaarStore
 import app.pukaar.device.DeviceStatus
 import app.pukaar.gateway.Gateway
 import app.pukaar.map.OfflineMaps
+import app.pukaar.sos.NearbySosStore
 import app.pukaar.sos.OfficialPacket
 import app.pukaar.sos.Packets
 import app.pukaar.sos.SosManager
@@ -63,6 +64,7 @@ object PukaarRuntime {
             OfflineMaps.state.collect { if (it is OfflineMaps.State.Saved) PukaarStore.setOfflinePending(false) }
         }
         watchPackets(app)
+        NearbySosStore.start(scope) { SosManager.ownIds }
         ChatOutbox.start(app, scope)
         scope.launch {
             combine(DeviceStatus.connection, SosManager.active) { c, s -> c to s }.collect { SosWidgets.updateAll(app) }

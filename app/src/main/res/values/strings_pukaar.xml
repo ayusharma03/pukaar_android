@@ -586,4 +586,13 @@
     <string name="pk_settings_offline_bundled_hint">Saved with the app</string>
     <string name="pk_onb_offline_continue_bg">Continue while it downloads</string>
     <string name="pk_onb_offline_no_internet">No internet right now. You can download the map later from Settings.</string>
+
+    <!-- Helping people nearby -->
+    <string name="pk_map_sos_title">SOS · %1$s</string>
+    <string name="pk_map_sos_help_hint">Only go if it is safe for you. If any phone nearby has internet, rescuers have already been told.</string>
+    <string name="pk_chat_sos_safe">Safe now</string>
+    <string name="pk_chat_sos_open_map">Tap to see where on the map</string>
+    <string name="pk_home_last_message">%1$s · %2$s</string>
+    <string name="pk_contacts_edit">Edit</string>
+    <string name="pk_contacts_edit_title">Edit contact</string>
 </resources>

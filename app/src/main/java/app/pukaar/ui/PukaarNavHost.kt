@@ -53,6 +53,10 @@ import app.pukaar.ui.screens.guides.guide
 import app.pukaar.ui.screens.home.HomeScreen
 import app.pukaar.ui.screens.home.HomeState
 import app.pukaar.ui.screens.map.DirectionRoute
+import app.pukaar.ui.screens.map.DirectionTarget
+import app.pukaar.ui.screens.map.toTarget
+import app.pukaar.sos.NearbySosStore
+import androidx.compose.ui.res.pluralStringResource
 import app.pukaar.ui.screens.map.LatLon
 import app.pukaar.ui.screens.map.MapScreen
 import app.pukaar.ui.screens.map.MapState
@@ -82,6 +86,9 @@ object Routes {
     const val NETWORK = "network"
     const val CALLING = "calling"
     const val DIRECTION = "direction/{id}"
+    const val DIRECTION_SOS = "direction-sos/{id}"
+    /** The map opened on one thing from elsewhere (chat): "sos:<id>" or "loc:<lat>,<lon>". */
+    const val MAP_FOCUS = "map-focus/{focus}"
     const val SOS_COUNTDOWN = "sos/countdown"
     const val SOS_PRACTICE = "sos/practice"
     const val SOS_STATUS = PukaarIntents.ROUTE_SOS_STATUS
@@ -134,9 +141,15 @@ fun PukaarNavHost(chatViewModel: ChatViewModel, pendingRoute: String?, onRouteHa
             NavHost(nav, startDestination = Routes.HOME) {
                 composable(Routes.HOME) { HomeRoute(nav, chatViewModel) }
                 composable(Routes.CHAT) {
-                    ChatRoute(chatViewModel, onSos = { nav.navigate(Routes.SOS_COUNTDOWN) }, onNetwork = { nav.navigate(Routes.NETWORK) })
+                    ChatRoute(
+                        chatViewModel,
+                        onSos = { nav.navigate(Routes.SOS_COUNTDOWN) },
+                        onNetwork = { nav.navigate(Routes.NETWORK) },
+                        onOpenOnMap = { focus -> nav.navigate("map-focus/" + android.net.Uri.encode(focus)) },
+                    )
                 }
                 composable(Routes.MAP) { MapRoute(nav) }
+                composable(Routes.MAP_FOCUS) { entry -> MapRoute(nav, entry.arguments?.getString("focus")) }
                 composable(Routes.GUIDES) {
                     val connection by DeviceStatus.connection.collectAsState()
                     val checked by PukaarStore.checklists.collectAsState()
@@ -167,7 +180,24 @@ fun PukaarNavHost(chatViewModel: ChatViewModel, pendingRoute: String?, onRouteHa
                 composable(Routes.DIRECTION) { entry ->
                     val place = entry.arguments?.getString("id")?.let { Places.byId(context, it) }
                     if (place == null) LaunchedEffect(Unit) { nav.popBackStack() }
-                    else DirectionRoute(place, onBack = { nav.popBackStack() }, onChange = { nav.popBackStack() })
+                    else DirectionRoute(place.toTarget(), onBack = { nav.popBackStack() }, onChange = { nav.popBackStack() })
+                }
+                composable(Routes.DIRECTION_SOS) { entry ->
+                    val sos = entry.arguments?.getString("id")?.let { NearbySosStore.byId(it) }
+                    val p = sos?.packet
+                    if (p?.lat == null || p.lon == null) LaunchedEffect(Unit) { nav.popBackStack() }
+                    else DirectionRoute(
+                        DirectionTarget(
+                            name = stringResource(R.string.pk_map_sos_title, p.name),
+                            kind = pluralStringResource(R.plurals.pk_people_count, p.people, p.people),
+                            icon = Sym.sos,
+                            lat = p.lat,
+                            lon = p.lon,
+                            isSos = true,
+                        ),
+                        onBack = { nav.popBackStack() },
+                        onChange = { nav.popBackStack() },
+                    )
                 }
                 composable(Routes.SOS_COUNTDOWN) {
                     SosCountdownRoute(
@@ -242,11 +272,16 @@ private fun HomeRoute(nav: NavHostController, chatViewModel: ChatViewModel) {
     val messages by chatViewModel.messages.collectAsState()
     val nickname by chatViewModel.nickname.collectAsState()
     val seenAt by PukaarStore.chatSeenAt.collectAsState()
+    val mapState by app.pukaar.map.OfflineMaps.state.collectAsState()
     val myPeer = remember { MeshBridge.myPeerId(context) }
     var confirmSafe by remember { mutableStateOf(false) }
 
     HomeScreen(
-        state = HomeState(connection, battery, unreadCount(messages, seenAt, myPeer, nickname), sos, offlinePending),
+        state = HomeState(
+            connection, battery, unreadCount(messages, seenAt, myPeer, nickname), sos,
+            offlinePending && mapState !is app.pukaar.map.OfflineMaps.State.Saved,
+            lastMessage = remember(messages) { lastMessageFrom(messages, myPeer, nickname) },
+        ),
         onSos = { nav.navigate(Routes.SOS_COUNTDOWN) },
         onSosStatus = { nav.navigate(Routes.SOS_STATUS) },
         onSafe = { confirmSafe = true },
@@ -261,9 +296,29 @@ private fun HomeRoute(nav: NavHostController, chatViewModel: ChatViewModel) {
     if (confirmSafe) SafeConfirmDialog(onDismiss = { confirmSafe = false }) { SosManager.markSafe() }
 }
 
+/** Latest chat message from someone else, or a verified official one (for the Home card). */
+private fun lastMessageFrom(
+    messages: List<com.bitchat.android.model.BitchatMessage>,
+    myPeer: String?,
+    nickname: String,
+): app.pukaar.ui.screens.home.LastMessage? {
+    for (m in messages.asReversed()) {
+        if (m.sender == "system" || m.senderPeerID == myPeer || m.sender == nickname) continue
+        when (val p = app.pukaar.sos.Packets.parse(m.content)) {
+            null -> return app.pukaar.ui.screens.home.LastMessage(m.sender, app.pukaar.sos.Packets.splitLocation(m.content).first, m.timestamp.time, official = false)
+            is app.pukaar.sos.OfficialPacket -> if (p.verified()) {
+                return app.pukaar.ui.screens.home.LastMessage(p.from, p.text, m.timestamp.time, official = true)
+            }
+            else -> Unit
+        }
+    }
+    return null
+}
+
 @Composable
-private fun MapRoute(nav: NavHostController) {
+private fun MapRoute(nav: NavHostController, focus: String? = null) {
     val context = LocalContext.current
+    val nearbySos by NearbySosStore.all.collectAsState()
     val set = remember { Places.load(context) }
     val connection by DeviceStatus.connection.collectAsState()
     val mapState by app.pukaar.map.OfflineMaps.state.collectAsState()
@@ -278,11 +333,14 @@ private fun MapRoute(nav: NavHostController) {
             meAccuracyM = me?.takeIf { it.hasAccuracy() }?.accuracy,
             connection = connection,
             mapSaved = mapState is app.pukaar.map.OfflineMaps.State.Saved,
+            nearbySos = nearbySos,
+            focusId = focus,
         ),
         onSos = { nav.navigate(Routes.SOS_COUNTDOWN) },
         onNetwork = { nav.navigate(Routes.NETWORK) },
         onDirection = { nav.navigate("direction/${it.id}") },
         onCall = { placeCall(context, it) },
+        onSosDirection = { nav.navigate("direction-sos/${it.id}") },
     )
 }
 

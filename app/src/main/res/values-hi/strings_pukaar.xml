@@ -585,4 +585,13 @@
     <string name="pk_settings_offline_bundled_hint">ऐप के साथ सेव</string>
     <string name="pk_onb_offline_continue_bg">डाउनलोड होते हुए आगे बढ़ें</string>
     <string name="pk_onb_offline_no_internet">अभी इंटरनेट नहीं है। नक्शा बाद में सेटिंग से डाउनलोड कर सकते हैं।</string>
+
+    <!-- Helping people nearby. NEEDS REVIEW by a native speaker. -->
+    <string name="pk_map_sos_title">SOS · %1$s</string>
+    <string name="pk_map_sos_help_hint">तभी जाएँ जब आपके लिए सुरक्षित हो। अगर पास के किसी फ़ोन में इंटरनेट है, तो बचाव दल को पहले ही बता दिया गया है।</string>
+    <string name="pk_chat_sos_safe">अब सुरक्षित</string>
+    <string name="pk_chat_sos_open_map">नक्शे पर देखने के लिए दबाएँ</string>
+    <string name="pk_home_last_message">%1$s · %2$s</string>
+    <string name="pk_contacts_edit">बदलें</string>
+    <string name="pk_contacts_edit_title">संपर्क बदलें</string>
 </resources>

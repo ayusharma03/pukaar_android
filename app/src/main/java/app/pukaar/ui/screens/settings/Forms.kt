@@ -115,6 +115,7 @@ private fun readPickedContact(context: Context, uri: Uri): Pair<String, String>?
 fun ContactsEditor(contacts: List<EmergencyContact>, showTests: Boolean, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var showAdd by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<EmergencyContact?>(null) }
     var message by remember { mutableStateOf<Int?>(null) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -127,7 +128,7 @@ fun ContactsEditor(contacts: List<EmergencyContact>, showTests: Boolean, modifie
     val full = contacts.size >= MaxEmergencyContacts
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(PukaarDimens.space3)) {
-        contacts.forEach { c -> ContactCard(c, showTests) }
+        contacts.forEach { c -> ContactCard(c, showTests, onEdit = { editing = c }) }
         Row(horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space2)) {
             TonalButton(
                 stringResource(R.string.pk_contacts_pick),
@@ -150,6 +151,20 @@ fun ContactsEditor(contacts: List<EmergencyContact>, showTests: Boolean, modifie
         if (!PukaarStore.addContact(name, phone, relation)) message = R.string.pk_contacts_not_added
         showAdd = false
     }
+    editing?.let { c ->
+        AddContactDialog(onDismiss = { editing = null }, initial = c) { name, phone, relation ->
+            val numberChanged = PukaarStore.normalizePhone(phone) != PukaarStore.normalizePhone(c.phone)
+            PukaarStore.updateContact(
+                c.copy(
+                    name = name.trim(), phone = phone.trim(), relation = relation.trim(),
+                    // A new number hasn't been tested yet.
+                    testStatus = if (numberChanged) ContactTestStatus.NotTested else c.testStatus,
+                    testedAt = if (numberChanged) null else c.testedAt,
+                ),
+            )
+            editing = null
+        }
+    }
     message?.let { res ->
         AlertDialog(
             onDismissRequest = { message = null },
@@ -160,7 +175,7 @@ fun ContactsEditor(contacts: List<EmergencyContact>, showTests: Boolean, modifie
 }
 
 @Composable
-private fun ContactCard(c: EmergencyContact, showTests: Boolean) {
+private fun ContactCard(c: EmergencyContact, showTests: Boolean, onEdit: () -> Unit) {
     val context = LocalContext.current
     var menu by remember { mutableStateOf(false) }
     PukaarCard(Modifier.fillMaxWidth(), padding = PukaarDimens.space3) {
@@ -174,6 +189,7 @@ private fun ContactCard(c: EmergencyContact, showTests: Boolean) {
                 Box {
                     IconButton(onClick = { menu = true }) { PukaarIcon(Sym.moreVert, stringResource(R.string.pk_more_options)) }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.pk_contacts_edit)) }, onClick = { menu = false; onEdit() })
                         DropdownMenuItem(text = { Text(stringResource(R.string.pk_contacts_send_test)) }, onClick = { menu = false; sendTest(context, c) })
                         DropdownMenuItem(text = { Text(stringResource(R.string.pk_remove)) }, onClick = { menu = false; PukaarStore.removeContact(c.id) })
                     }
@@ -228,14 +244,14 @@ private fun sendTest(context: Context, c: EmergencyContact) {
 }
 
 @Composable
-private fun AddContactDialog(onDismiss: () -> Unit, onAdd: (String, String, String) -> Unit) {
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var relation by remember { mutableStateOf("") }
+private fun AddContactDialog(onDismiss: () -> Unit, initial: EmergencyContact? = null, onAdd: (String, String, String) -> Unit) {
+    var name by remember { mutableStateOf(initial?.name.orEmpty()) }
+    var phone by remember { mutableStateOf(initial?.phone.orEmpty()) }
+    var relation by remember { mutableStateOf(initial?.relation.orEmpty()) }
     val valid = PukaarStore.normalizePhone(phone).count { it.isDigit() } >= 5
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.pk_contacts_add_title)) },
+        title = { Text(stringResource(if (initial == null) R.string.pk_contacts_add_title else R.string.pk_contacts_edit_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(PukaarDimens.space2)) {
                 OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.pk_profile_name)) }, singleLine = true,
@@ -248,7 +264,7 @@ private fun AddContactDialog(onDismiss: () -> Unit, onAdd: (String, String, Stri
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences))
             }
         },
-        confirmButton = { TextButton(onClick = { onAdd(name, phone, relation) }, enabled = valid) { Text(stringResource(R.string.pk_add)) } },
+        confirmButton = { TextButton(onClick = { onAdd(name, phone, relation) }, enabled = valid) { Text(stringResource(if (initial == null) R.string.pk_add else R.string.pk_save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.pk_cancel)) } },
     )
 }

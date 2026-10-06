@@ -60,7 +60,11 @@ data class HomeState(
     val unreadChat: Int,
     val activeSos: ActiveSos?,
     val offlineDataMissing: Boolean,
+    /** Latest message from someone else in Disaster Relief, if any. */
+    val lastMessage: LastMessage? = null,
 )
+
+data class LastMessage(val sender: String, val text: String, val time: Long, val official: Boolean)
 
 /** Home (2h): the calm command centre. SOS is one tap away (NFR-1). */
 @Composable
@@ -109,6 +113,7 @@ fun HomeScreen(
             if (state.battery.low) {
                 InfoBox(batteryIcon(state.battery.level), stringResource(R.string.pk_home_battery_low, state.battery.level), MaterialTheme.status.warning)
             }
+            state.lastMessage?.let { LastMessageCard(it, onChat) }
             if (state.offlineDataMissing) {
                 Box(Modifier.clip(MaterialTheme.shapes.medium).clickable(onClick = onOfflineData)) {
                     InfoBox(Sym.download, stringResource(R.string.pk_home_offline_missing), MaterialTheme.status.warning)
@@ -249,6 +254,25 @@ private fun ActiveSosCard(sos: ActiveSos, onOpen: () -> Unit, onSafe: () -> Unit
                 height = PukaarDimens.minTarget,
             )
         }
+    }
+}
+
+@Composable
+private fun LastMessageCard(msg: LastMessage, onOpen: () -> Unit) {
+    val time = android.text.format.DateFormat.getTimeFormat(androidx.compose.ui.platform.LocalContext.current).format(java.util.Date(msg.time))
+    val bg = if (msg.official) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+    val fg = if (msg.official) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    PukaarCard(color = bg, contentColor = fg, onClick = onOpen, padding = PukaarDimens.space3) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space1)) {
+            PukaarIcon(if (msg.official) Sym.verified else Sym.forum, null, size = 18.dp, filled = msg.official)
+            Text(
+                stringResource(R.string.pk_home_last_message, msg.sender, time),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.weight(1f),
+            )
+            PukaarIcon(Sym.chevronRight, null, size = 20.dp)
+        }
+        Text(msg.text, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
     }
 }
 

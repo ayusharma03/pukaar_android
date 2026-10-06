@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -58,6 +59,9 @@ import org.maplibre.android.maps.MapLibreMap
 import androidx.compose.ui.unit.dp
 import app.pukaar.data.Place
 import app.pukaar.data.PlaceType
+import app.pukaar.sos.NearbySos
+import app.pukaar.sos.NearbySosState
+import app.pukaar.sos.SosManager
 import app.pukaar.device.Locations
 import app.pukaar.model.ConnectionStatus
 import app.pukaar.ui.components.ConnectionPill
@@ -83,6 +87,10 @@ data class MapState(
     val connection: ConnectionStatus,
     /** True when the base map for this area is saved for offline use. */
     val mapSaved: Boolean = false,
+    /** Other people's SOS heard over the mesh (shown while they still need help). */
+    val nearbySos: List<NearbySos> = emptyList(),
+    /** Open with this selected: a place id, or "sos:<id>". */
+    val focusId: String? = null,
 )
 
 data class LatLon(val lat: Double, val lon: Double)
@@ -120,9 +128,10 @@ fun MapScreen(
     onNetwork: () -> Unit,
     onDirection: (Place) -> Unit,
     onCall: (String) -> Unit,
+    onSosDirection: (NearbySos) -> Unit = {},
 ) {
     var layers by rememberSaveable { mutableStateOf(setOf(PlaceType.Shelter, PlaceType.Hospital, PlaceType.Police)) }
-    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedId by rememberSaveable(state.focusId) { mutableStateOf(state.focusId) }
     var query by rememberSaveable { mutableStateOf("") }
 
     val placesCenter = if (state.places.isEmpty()) null else LatLon(state.places.map { it.lat }.average(), state.places.map { it.lon }.average())
@@ -145,15 +154,25 @@ fun MapScreen(
     LaunchedEffect(map, dark) {
         map?.setStyle(if (dark) OfflineMaps.STYLE_DARK else OfflineMaps.STYLE_LIGHT)
     }
-    LaunchedEffect(map, me != null) {
-        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(origin.lat, origin.lon), 13.0))
-    }
 
     val visible = state.places.filter { it.type in layers }
     val from = me ?: center
     val nearestShelter = state.places.filter { it.type == PlaceType.Shelter }
         .minByOrNull { Locations.distanceM(from.lat, from.lon, it.lat, it.lon) }
-    val selected = state.places.firstOrNull { it.id == selectedId } ?: nearestShelter
+    val sosPins = state.nearbySos.filter { it.open && it.hasLocation }
+    val focusLoc = state.focusId?.takeIf { it.startsWith("loc:") }?.removePrefix("loc:")?.split(",")
+        ?.mapNotNull { it.toDoubleOrNull() }?.takeIf { it.size == 2 }?.let { LatLon(it[0], it[1]) }
+    val selectedSos = state.nearbySos.firstOrNull { "sos:${it.id}" == selectedId && it.hasLocation }
+    val selected = if (selectedSos != null) null else state.places.firstOrNull { it.id == selectedId } ?: nearestShelter
+    LaunchedEffect(map, me != null) {
+        val focus = selectedSos?.packet
+        val target = when {
+            focus?.lat != null && focus.lon != null -> LatLng(focus.lat, focus.lon)
+            focusLoc != null -> LatLng(focusLoc.lat, focusLoc.lon)
+            else -> LatLng(origin.lat, origin.lon)
+        }
+        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(target, if (focus != null || focusLoc != null) 15.0 else 13.0))
+    }
 
     fun toScreen(p: LatLon): Offset {
         map?.let { m ->
@@ -203,8 +222,12 @@ fun MapScreen(
                     // Distance rings only on the plain fallback; the real map has roads to judge by.
                     if (map == null) for (r in 1..6) drawCircle(colors.outlineVariant, radiusPx(r * 500f), c, style = Stroke(1.dp.toPx()))
                     state.meAccuracyM?.let { acc -> drawCircle(colors.primary.copy(alpha = 0.15f), radiusPx(acc), c) }
-                    if (selected != null) {
-                        drawLine(colors.primary.copy(alpha = 0.6f), c, toScreen(LatLon(selected.lat, selected.lon)), 3.dp.toPx())
+                    val lineTo = selectedSos?.packet?.let { LatLon(it.lat!!, it.lon!!) } ?: selected?.let { LatLon(it.lat, it.lon) }
+                    if (lineTo != null) {
+                        drawLine(
+                            (if (selectedSos != null) s.sosFill else colors.primary).copy(alpha = 0.6f),
+                            c, toScreen(lineTo), 3.dp.toPx(),
+                        )
                     }
                     drawCircle(colors.surface, 10.dp.toPx(), c)
                     drawCircle(colors.primary, 7.dp.toPx(), c)
@@ -240,6 +263,38 @@ fun MapScreen(
                         )
                     }
                 }
+            }
+
+            focusLoc?.let { loc ->
+                val pos = toScreen(loc)
+                val half = with(density) { 18.dp.roundToPx() }
+                Box(
+                    Modifier
+                        .offset { IntOffset(pos.x.roundToInt() - half, pos.y.roundToInt() - half) }
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(colors.primary)
+                        .border(2.dp, colors.surface, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { PukaarIcon(Sym.locationOn, stringResource(R.string.pk_chat_location_shared), size = 22.dp, tint = colors.onPrimary) }
+            }
+            sosPins.forEach { sos ->
+                val pos = toScreen(LatLon(sos.packet.lat!!, sos.packet.lon!!))
+                val isSelected = sos == selectedSos
+                val pinSize = if (isSelected) 44.dp else 36.dp
+                val half = with(density) { (pinSize / 2).roundToPx() }
+                val description = stringResource(R.string.pk_map_sos_title, sos.packet.name)
+                Box(
+                    Modifier
+                        .offset { IntOffset(pos.x.roundToInt() - half, pos.y.roundToInt() - half) }
+                        .size(pinSize)
+                        .clip(CircleShape)
+                        .background(s.sosFill)
+                        .border(2.dp, colors.surface, CircleShape)
+                        .clickable(role = Role.Button) { selectedId = "sos:${sos.id}" }
+                        .semantics { contentDescription = description },
+                    contentAlignment = Alignment.Center,
+                ) { PukaarIcon(Sym.sos, null, size = if (isSelected) 26.dp else 22.dp, tint = s.onSosFill) }
             }
         }
 
@@ -337,7 +392,7 @@ fun MapScreen(
                     contentAlignment = Alignment.Center,
                 ) { PukaarIcon(Sym.myLocation, stringResource(R.string.pk_map_my_location), tint = if (me != null) colors.primary else colors.outline) }
             }
-            PlaceSheet(
+            if (selectedSos != null) NearbySosSheet(selectedSos, me, onSosDirection) else PlaceSheet(
                 place = selected,
                 isNearest = selected?.id == nearestShelter?.id && selectedId == null,
                 from = me,
@@ -413,5 +468,48 @@ private fun MapPreview() = PreviewTheme {
             ),
             {}, {}, {}, {},
         )
+    }
+}
+
+/** Someone else's SOS on the map: what they need, how far, and the way there. */
+@Composable
+private fun NearbySosSheet(sos: NearbySos, from: LatLon?, onDirection: (NearbySos) -> Unit) {
+    val s = MaterialTheme.status
+    val p = sos.packet
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(PukaarDimens.space4), verticalArrangement = Arrangement.spacedBy(PukaarDimens.space2)) {
+            Box(Modifier.align(Alignment.CenterHorizontally).size(width = 32.dp, height = 4.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outlineVariant))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space3)) {
+                Box(Modifier.size(44.dp).clip(CircleShape).background(s.sosFill), contentAlignment = Alignment.Center) {
+                    PukaarIcon(Sym.sos, null, tint = s.onSosFill)
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.pk_map_sos_title, p.name), style = MaterialTheme.typography.titleLarge)
+                    val needs = listOf(pluralStringResource(R.plurals.pk_people_count, p.people, p.people)) +
+                        p.flags.map { stringResource(SosManager.flagLabel(it)) }
+                    Text(needs.joinToString(" · "), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+            if (p.message.isNotBlank()) Text("\u201c${p.message}\u201d", style = MaterialTheme.typography.bodyLarge)
+            val meta = buildList {
+                if (from != null && p.lat != null && p.lon != null) {
+                    val d = Locations.distanceM(from.lat, from.lon, p.lat, p.lon)
+                    val b = Locations.bearing(from.lat, from.lon, p.lat, p.lon)
+                    add(stringResource(R.string.pk_map_distance_direction, formatDistance(d), stringResource(compassPoint(b))))
+                }
+                add(stringResource(R.string.pk_chat_battery, p.battery))
+                add(android.text.format.DateFormat.getTimeFormat(androidx.compose.ui.platform.LocalContext.current).format(java.util.Date(p.timeSec * 1000)))
+            }
+            Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (sos.state == NearbySosState.Attending) {
+                app.pukaar.ui.components.Tag(stringResource(R.string.pk_sos_hero_attending), s.confirmed)
+            }
+            app.pukaar.ui.components.InfoBox(Sym.warning, stringResource(R.string.pk_map_sos_help_hint), s.warning)
+            PrimaryButton(stringResource(R.string.pk_map_show_direction), { onDirection(sos) }, Modifier.fillMaxWidth(), icon = Sym.explore, height = PukaarDimens.minTarget)
+        }
     }
 }
