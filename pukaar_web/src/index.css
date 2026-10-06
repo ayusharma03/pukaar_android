@@ -1,0 +1,153 @@
+@import 'tailwindcss';
+@import './theme/tokens.css';
+
+/* Theme switch is the data-theme attribute on <html>, not the OS setting (the user picks it). */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * Tailwind theme: only Pukaar tokens. Default palette, fonts, radii and shadows are cleared so a
+ * stray `bg-red-500` or `shadow-lg` doesn't compile.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-primary: var(--pk-primary);
+  --color-on-primary: var(--pk-on-primary);
+  --color-primary-container: var(--pk-primary-container);
+  --color-on-primary-container: var(--pk-on-primary-container);
+  --color-secondary: var(--pk-secondary);
+  --color-on-secondary: var(--pk-on-secondary);
+  --color-secondary-container: var(--pk-secondary-container);
+  --color-on-secondary-container: var(--pk-on-secondary-container);
+  --color-error: var(--pk-error);
+  --color-on-error: var(--pk-on-error);
+  --color-error-container: var(--pk-error-container);
+  --color-on-error-container: var(--pk-on-error-container);
+  --color-surface: var(--pk-surface);
+  --color-on-surface: var(--pk-on-surface);
+  --color-surface-variant: var(--pk-surface-variant);
+  --color-on-surface-variant: var(--pk-on-surface-variant);
+  --color-outline: var(--pk-outline);
+  --color-outline-variant: var(--pk-outline-variant);
+  --color-scrim: var(--pk-scrim);
+  --color-inverse-surface: var(--pk-inverse-surface);
+  --color-inverse-on-surface: var(--pk-inverse-on-surface);
+  --color-inverse-primary: var(--pk-inverse-primary);
+  --color-surface-container-lowest: var(--pk-surface-container-lowest);
+  --color-surface-container-low: var(--pk-surface-container-low);
+  --color-surface-container: var(--pk-surface-container);
+  --color-surface-container-high: var(--pk-surface-container-high);
+  --color-surface-container-highest: var(--pk-surface-container-highest);
+
+  /* Status colours, four roles each (docs/design-tokens.md). sos-* only ever for SOS. */
+  --color-sos: var(--pk-sos);
+  --color-on-sos: var(--pk-on-sos);
+  --color-sos-container: var(--pk-sos-container);
+  --color-on-sos-container: var(--pk-on-sos-container);
+  --color-sos-fill: var(--pk-sos-fill);
+  --color-on-sos-fill: var(--pk-on-sos-fill);
+  --color-mesh: var(--pk-mesh);
+  --color-on-mesh: var(--pk-on-mesh);
+  --color-mesh-container: var(--pk-mesh-container);
+  --color-on-mesh-container: var(--pk-on-mesh-container);
+  --color-radio: var(--pk-radio);
+  --color-on-radio: var(--pk-on-radio);
+  --color-radio-container: var(--pk-radio-container);
+  --color-on-radio-container: var(--pk-on-radio-container);
+  --color-confirmed: var(--pk-confirmed);
+  --color-on-confirmed: var(--pk-on-confirmed);
+  --color-confirmed-container: var(--pk-confirmed-container);
+  --color-on-confirmed-container: var(--pk-on-confirmed-container);
+  --color-warning: var(--pk-warning);
+  --color-on-warning: var(--pk-on-warning);
+  --color-warning-container: var(--pk-warning-container);
+  --color-on-warning-container: var(--pk-on-warning-container);
+
+  /* Fonts: Mukta for all text (bundled from npm, works offline), Material Symbols Rounded for icons. */
+  --font-*: initial;
+  --font-sans: 'Mukta', system-ui, sans-serif;
+  --font-icon: 'Material Symbols Rounded';
+
+  /* Type scale in px (handoff README "Type"): text-body sets size and line height together. */
+  --text-*: initial;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-list: 14px;
+  --text-list--line-height: 20px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-card-title: 16px;
+  --text-card-title--line-height: 22px;
+  --text-panel-title: 17px;
+  --text-panel-title--line-height: 22px;
+  --text-count: 17px;
+  --text-count--line-height: 22px;
+  --text-empty-title: 18px;
+  --text-empty-title--line-height: 24px;
+  --text-dialog-title: 24px;
+  --text-dialog-title--line-height: 32px;
+  --text-screen-title: 28px;
+  --text-screen-title--line-height: 36px;
+
+  /* Radii: chips 6-8, cards and toasts 12, sections 16, dialogs 28, buttons full. */
+  --radius-*: initial;
+  --radius-chip-sm: 6px;
+  --radius-chip: 8px;
+  --radius-card: 12px;
+  --radius-section: 16px;
+  --radius-dialog: 28px;
+  --radius-full: 9999px;
+
+  /* No shadows except the menu popover. */
+  --shadow-*: initial;
+  --shadow-popover: 0 4px 16px rgba(0, 0, 0, 0.3);
+
+  /* Fixed layout sizes (handoff "Layout (D2)"): h-topbar, w-right-col, w-detail-panel... */
+  --spacing-topbar: 56px;
+  --spacing-filterbar: 48px;
+  --spacing-banner: 48px;
+  --spacing-list-footer: 40px;
+  --spacing-right-col: 400px;
+  --spacing-detail-panel: 440px;
+  --spacing-toast: 440px;
+  --spacing-search: 250px;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-surface text-on-surface font-sans text-body;
+    min-width: 1280px;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Material Symbols: outlined by default, filled with .icon-fill (chips, status, selected). */
+  .icon {
+    font-family: var(--font-icon);
+    font-weight: 400;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    display: inline-block;
+    white-space: nowrap;
+    direction: ltr;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    user-select: none;
+  }
+  .icon-fill {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation: none !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

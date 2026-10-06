@@ -1,3 +1,6 @@
 node_modules/
 .firebaserc
 *.local.json
+.secret.local
+*.log
+.env.local

@@ -114,7 +114,7 @@ The full-screen SOS countdown uses `sosFill` as its background.
 | Delivery: Rescuer attending | Confirmed |
 | Delivery: Resolved | Confirmed, quieter (container) |
 | Dashboard SOS: New | SOS |
-| Dashboard SOS: Attended | Primary (decided with the product owner; warning is kept for low battery, stale location and lost connection) |
+| Dashboard SOS: Attended | Warning |
 | Dashboard SOS: Resolved | Confirmed |
 | Low battery, no GPS, missing offline data | Warning |
 
@@ -373,4 +373,4 @@ The rescuer dashboard uses the same colour roles, status colours, Mukta font and
 | Themes | Light and dark, chosen by the user |
 | Base text | 16 px body, 14 px allowed in dense tables |
 | Map | Takes most of the screen, incident list on the right (about 400 px wide) |
-| Status on map pins | SOS (new), Primary (attended), Confirmed (resolved) |
+| Status on map pins | SOS (new), Warning (attended), Confirmed (resolved) |

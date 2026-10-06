@@ -40,13 +40,13 @@ function getService() {
 function getApp() {
   if (app) return app;
   app = createApp(getService(), {
-    // Responders are Firebase Auth users with the custom claim role = "responder" (FR-28).
+    // Responders are Firebase Auth users with the custom claim role = "responder" or "admin" (FR-28).
     verifyResponder: async (req) => {
       const token = (req.get('Authorization') || '').replace(/^Bearer /, '');
       if (!token) return null;
       try {
         const user = await admin.auth().verifyIdToken(token);
-        return user.role === 'responder' ? { uid: user.uid, name: user.name || user.email || '' } : null;
+        return ['responder', 'admin'].includes(user.role) ? { uid: user.uid, name: user.name || user.email || '' } : null;
       } catch (e) {
         return null;
       }

@@ -16,6 +16,7 @@ This repo is a fork of bitchat-android, which provides the Bluetooth mesh.
 | Exact look of each screen | `docs/design/HANDOFF.md` (screen ids 2a to 2y) and `docs/design/Pukaar App v2.dc.html` |
 | Message formats, fallback rules | `docs/protocol.md` |
 | System design | `docs/architecture.md` |
+| Rescuer dashboard (web, separate project) | `pukaar_web/CLAUDE.md`, `docs/dashboard-plan.md` |
 
 `docs/design/Pukaar App Screens.html` is large (about 1.8 MB). Don't read it whole; search it or use the v2 file instead.
 
@@ -49,6 +50,8 @@ Kotlin, Jetpack Compose, Material 3, Navigation Compose. Backend is Firebase (Fi
 ```
 
 The `wear` module is bitchat's smartwatch app. Ignore it.
+
+`pukaar_web/` is the rescuer dashboard, a separate web project with its own rules (`pukaar_web/CLAUDE.md`), CI workflow and deploy. Android work never needs to touch it, and the Android rules above (Compose, `pk_` strings, previews) don't apply there.
 
 ## Working style
 

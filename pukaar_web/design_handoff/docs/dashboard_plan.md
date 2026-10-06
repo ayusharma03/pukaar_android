@@ -1,6 +1,6 @@
 # Rescuer dashboard: plan
 
-A short brief for building the control-room dashboard (screens D1 to D5 in [screens.md](screens.md)) in its own folder, `pukaar_web/`. It covers what already exists, how the dashboard fits in, the suggested stack, and where Nostr stands.
+A short brief for building the control-room dashboard (screens D1 to D5 in [screens.md](screens.md)) in its own VS Code project. It covers what already exists, how the dashboard fits in, the suggested stack, and where Nostr stands.
 
 ## 1. What already exists
 
@@ -46,7 +46,7 @@ Phones ──mesh──▶ Gateway phone ──HTTPS──▶ Cloud Function `ap
 | Hosting | **Firebase Hosting** | One `firebase deploy` alongside the functions |
 | Local dev | **Firebase Emulator Suite** (Auth, Firestore, Functions) | The whole stack runs offline on a laptop |
 
-Layout: the dashboard is `pukaar_web/` at the repo root, next to `server/`, so the Firebase project, rules and functions are shared. It is a separate project from the Android app, with its own CI workflow and deploy (see `pukaar_web/README.md`).
+Suggested layout: `dashboard/` at the repo root, next to `server/`, so the Firebase project, rules and functions are shared.
 
 ## 4. Data the dashboard reads
 

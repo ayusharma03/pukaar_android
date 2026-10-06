@@ -1,0 +1,116 @@
+/*
+ * Pukaar design tokens for the web (docs/design-tokens.md, standard contrast).
+ * One CSS variable per Material 3 role; the theme is picked with <html data-theme="dark|light">.
+ * Tailwind classes map onto these in index.css (@theme), e.g. bg-surface-container-low, text-on-surface.
+ * Don't use raw hex in components.
+ */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --pk-primary: #b4c5ff;
+  --pk-on-primary: #1a2e60;
+  --pk-primary-container: #324478;
+  --pk-on-primary-container: #dbe1ff;
+  --pk-secondary: #c1c6dd;
+  --pk-on-secondary: #2a3042;
+  --pk-secondary-container: #414659;
+  --pk-on-secondary-container: #dde1f9;
+  --pk-error: #ffb4ab;
+  --pk-on-error: #690005;
+  --pk-error-container: #93000a;
+  --pk-on-error-container: #ffdad6;
+  --pk-surface: #121318;
+  --pk-on-surface: #e3e2e9;
+  --pk-surface-variant: #45464f;
+  --pk-on-surface-variant: #c5c6d0;
+  --pk-outline: #8f909a;
+  --pk-outline-variant: #45464f;
+  --pk-scrim: #000000;
+  --pk-inverse-surface: #e3e2e9;
+  --pk-inverse-on-surface: #2f3036;
+  --pk-inverse-primary: #4a5c92;
+  --pk-surface-container-lowest: #0d0e13;
+  --pk-surface-container-low: #1a1b21;
+  --pk-surface-container: #1e1f25;
+  --pk-surface-container-high: #292a2f;
+  --pk-surface-container-highest: #33343a;
+
+  --pk-sos: #ffb3ac;
+  --pk-on-sos: #680008;
+  --pk-sos-container: #930010;
+  --pk-on-sos-container: #ffdad6;
+  --pk-mesh: #4cdada;
+  --pk-on-mesh: #003737;
+  --pk-mesh-container: #004f4f;
+  --pk-on-mesh-container: #6ff7f6;
+  --pk-radio: #d4bbff;
+  --pk-on-radio: #3f0f81;
+  --pk-radio-container: #572e99;
+  --pk-on-radio-container: #ebdcff;
+  --pk-confirmed: #88d982;
+  --pk-on-confirmed: #003909;
+  --pk-confirmed-container: #005312;
+  --pk-on-confirmed-container: #a3f69c;
+  --pk-warning: #ffb956;
+  --pk-on-warning: #462b00;
+  --pk-warning-container: #643f00;
+  --pk-on-warning-container: #ffddb5;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --pk-primary: #4a5c92;
+  --pk-on-primary: #ffffff;
+  --pk-primary-container: #dbe1ff;
+  --pk-on-primary-container: #324478;
+  --pk-secondary: #585e72;
+  --pk-on-secondary: #ffffff;
+  --pk-secondary-container: #dde1f9;
+  --pk-on-secondary-container: #414659;
+  --pk-error: #ba1a1a;
+  --pk-on-error: #ffffff;
+  --pk-error-container: #ffdad6;
+  --pk-on-error-container: #93000a;
+  --pk-surface: #faf8ff;
+  --pk-on-surface: #1a1b21;
+  --pk-surface-variant: #e2e2ec;
+  --pk-on-surface-variant: #45464f;
+  --pk-outline: #757680;
+  --pk-outline-variant: #c5c6d0;
+  --pk-scrim: #000000;
+  --pk-inverse-surface: #2f3036;
+  --pk-inverse-on-surface: #f1f0f7;
+  --pk-inverse-primary: #b4c5ff;
+  --pk-surface-container-lowest: #ffffff;
+  --pk-surface-container-low: #f4f3fa;
+  --pk-surface-container: #eeedf4;
+  --pk-surface-container-high: #e8e7ef;
+  --pk-surface-container-highest: #e3e2e9;
+
+  --pk-sos: #ba1a20;
+  --pk-on-sos: #ffffff;
+  --pk-sos-container: #ffdad6;
+  --pk-on-sos-container: #930010;
+  --pk-mesh: #006a6a;
+  --pk-on-mesh: #ffffff;
+  --pk-mesh-container: #6ff7f6;
+  --pk-on-mesh-container: #004f4f;
+  --pk-radio: #6f48b2;
+  --pk-on-radio: #ffffff;
+  --pk-radio-container: #ebdcff;
+  --pk-on-radio-container: #572e99;
+  --pk-confirmed: #1b6d24;
+  --pk-on-confirmed: #ffffff;
+  --pk-confirmed-container: #a3f69c;
+  --pk-on-confirmed-container: #005312;
+  --pk-warning: #835400;
+  --pk-on-warning: #ffffff;
+  --pk-warning-container: #ffddb5;
+  --pk-on-warning-container: #643f00;
+}
+
+:root {
+  /* The SOS fill is the same in both themes (new-SOS pins, the SOS mark). Only for SOS. */
+  --pk-sos-fill: #d32f2f;
+  --pk-on-sos-fill: #ffffff;
+}

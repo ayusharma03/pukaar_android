@@ -4,8 +4,17 @@ on:
   workflow_dispatch:
   push:
     branches: [main, develop]
+    paths-ignore:
+      # The web dashboard and the server have their own workflow (pukaar-web.yml).
+      - "pukaar_web/**"
+      - "server/**"
+      - ".github/workflows/pukaar-web.yml"
   pull_request:
     branches: [main, develop]
+    paths-ignore:
+      - "pukaar_web/**"
+      - "server/**"
+      - ".github/workflows/pukaar-web.yml"
 
 permissions:
   contents: read

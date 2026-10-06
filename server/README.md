@@ -78,7 +78,7 @@ PUKAAR_SERVER_BOX_KEY=<from keygen>
 
 ## Dashboard access
 
-The dashboard routes (`/v1/admin/...`) need a Firebase Auth ID token for a user with the custom claim `role: "responder"`. Firestore reads are allowed for `viewer` and `responder`. Set claims with the Admin SDK, for example:
+The dashboard routes (`/v1/admin/...`) need a Firebase Auth ID token for a user with the custom claim `role: "responder"` or `"admin"`. Firestore reads are allowed for `viewer`, `responder` and `admin`. Set claims with the Admin SDK, for example:
 
 ```js
 admin.auth().setCustomUserClaims(uid, { role: 'responder' });
