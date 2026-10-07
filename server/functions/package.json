@@ -1,0 +1,18 @@
+{
+  "name": "pukaar-functions",
+  "private": true,
+  "description": "Pukaar rescuer server: Firebase Cloud Functions implementing docs/protocol.md",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": {
+    "test": "node --test",
+    "local": "node src/local.js",
+    "keygen": "node src/pukaar-crypto.js keygen",
+    "deploy": "firebase deploy --only functions,firestore"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.3.0"
+  }
+}

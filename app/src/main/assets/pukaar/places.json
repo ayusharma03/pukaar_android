@@ -1,0 +1,15 @@
+{
+  "region": "Darbhanga district, Bihar",
+  "sample": true,
+  "note": "SAMPLE DATA for demos. Names and positions are illustrative, not real shelters. Replace with the district's official list before use.",
+  "places": [
+    { "id": "rampur-school", "name": "Rampur Govt. School", "type": "shelter", "lat": 26.1610, "lon": 85.9080, "capacity": 300 },
+    { "id": "panchayat-bhawan", "name": "Panchayat Bhawan", "type": "shelter", "lat": 26.1455, "lon": 85.8860, "capacity": 120 },
+    { "id": "high-school-laheriasarai", "name": "Laheriasarai High School", "type": "shelter", "lat": 26.1290, "lon": 85.9010, "capacity": 450 },
+    { "id": "community-hall", "name": "Community Hall, Shivpuri", "type": "shelter", "lat": 26.1700, "lon": 85.8790, "capacity": 80 },
+    { "id": "dmch", "name": "District Hospital", "type": "hospital", "lat": 26.1530, "lon": 85.8990, "phone": "108" },
+    { "id": "phc-north", "name": "Primary Health Centre", "type": "hospital", "lat": 26.1760, "lon": 85.9050, "phone": "108" },
+    { "id": "police-town", "name": "Town Police Station", "type": "police", "lat": 26.1500, "lon": 85.8930, "phone": "100" },
+    { "id": "police-laheriasarai", "name": "Laheriasarai Police Station", "type": "police", "lat": 26.1330, "lon": 85.8960, "phone": "100" }
+  ]
+}

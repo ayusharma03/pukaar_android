@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Medium 2 x 2 widget (handoff 2x, 2y): SOS button plus connection status. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pk_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/pk_widget_bg"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/pk_widget_sos"
+        android:layout_width="88dp"
+        android:layout_height="88dp"
+        android:background="@drawable/pk_widget_sos_circle"
+        android:contentDescription="@string/pk_sos_button_description"
+        android:gravity="center"
+        android:text="@string/pk_sos"
+        android:textColor="@color/pk_on_sos_fill"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/pk_widget_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:textColor="@color/pk_widget_mesh"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/pk_widget_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@color/pk_widget_on_surface_variant"
+        android:textSize="12sp" />
+</LinearLayout>

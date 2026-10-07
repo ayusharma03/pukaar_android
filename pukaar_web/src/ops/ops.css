@@ -1,0 +1,183 @@
+/*
+ * Map markers (handoff "Components › Map pin"). Shape and colour carry status together, the number
+ * is the people count. Colours only from tokens.
+ */
+.pk-pin {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 250ms, transform 200ms;
+  font-family: 'Mukta', system-ui, sans-serif;
+}
+.pk-pin:focus-visible {
+  outline: 2px solid var(--pk-primary);
+  outline-offset: 3px;
+}
+.pk-pin__body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1;
+}
+/* New: circle in sosFill, 2 px surface border, white bold count. 26 / 32 / 38 by people. */
+.pk-pin--new .pk-pin__body {
+  border-radius: 9999px;
+  background: var(--pk-sos-fill);
+  color: var(--pk-on-sos-fill);
+  border: 2px solid var(--pk-surface);
+}
+.pk-pin--s .pk-pin__body { width: 26px; height: 26px; font-size: 12px; }
+.pk-pin--m .pk-pin__body { width: 32px; height: 32px; font-size: 14px; }
+.pk-pin--l .pk-pin__body { width: 38px; height: 38px; font-size: 16px; }
+/* Attended: rounded square in primary. */
+.pk-pin--attended .pk-pin__body {
+  border-radius: 8px;
+  background: var(--pk-primary);
+  color: var(--pk-on-primary);
+  border: 2px solid var(--pk-surface);
+}
+/* Resolved: small confirmedContainer circle with a check. */
+.pk-pin--resolved .pk-pin__body {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--pk-confirmed-container);
+  color: var(--pk-on-confirmed-container);
+  font-family: 'Material Symbols Rounded';
+  font-size: 14px;
+  font-weight: 400;
+}
+/* Injured or trapped: halo 14 px larger. */
+.pk-pin__halo {
+  position: absolute;
+  inset: -7px;
+  border-radius: 9999px;
+  background: rgba(211, 47, 47, 0.3);
+}
+.pk-pin--attended .pk-pin__halo { border-radius: 14px; }
+/* Just arrived: two rings that pulse twice over about 2 s. */
+.pk-pin__ring {
+  position: absolute;
+  border-radius: 9999px;
+  border: 2px solid var(--pk-sos-fill);
+  opacity: 0;
+  pointer-events: none;
+}
+.pk-pin--fresh .pk-pin__ring { animation: pk-ring 1s ease-out 2; }
+.pk-pin--fresh .pk-pin__ring--2 { animation-delay: 0.25s; }
+.pk-pin__ring--1 { inset: -13px; }
+.pk-pin__ring--2 { inset: -22px; }
+@keyframes pk-ring {
+  0% { opacity: 0.9; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+/* Selected: 3 px onSurface ring plus a label card above. */
+.pk-pin--selected .pk-pin__body { box-shadow: 0 0 0 3px var(--pk-on-surface); }
+.pk-pin--selected { z-index: 5; }
+.pk-pin__label {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--pk-surface-container-high);
+  color: var(--pk-on-surface);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  display: none;
+}
+.pk-pin--selected .pk-pin__label,
+.pk-pin:hover .pk-pin__label { display: block; }
+/* Outside the filters, or while the relief feed is open: dimmed, never hidden. */
+.pk-pin--dim { opacity: 0.45; }
+
+/* Cluster: conic ring split New / Attended / Resolved, inner disc with the total. */
+.pk-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  cursor: pointer;
+  background: conic-gradient(
+    var(--pk-sos-fill) 0 var(--a),
+    var(--pk-primary) var(--a) var(--b),
+    var(--pk-confirmed) var(--b) 100%
+  );
+  transition: opacity 250ms;
+  font-family: 'Mukta', system-ui, sans-serif;
+}
+.pk-cluster > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  border-radius: 9999px;
+  background: var(--pk-surface-container-high);
+  color: var(--pk-on-surface);
+  font-weight: 700;
+  font-size: 14px;
+}
+.pk-cluster:focus-visible { outline: 2px solid var(--pk-primary); outline-offset: 3px; }
+
+/* Chat marker: 22 px rounded square, 28 px in primary on hover. */
+.pk-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--pk-surface-container-highest);
+  border: 1px solid var(--pk-outline);
+  color: var(--pk-on-surface-variant);
+  font-family: 'Material Symbols Rounded';
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 150ms;
+}
+.pk-chat--hover,
+.pk-chat:hover {
+  width: 28px;
+  height: 28px;
+  background: var(--pk-primary);
+  color: var(--pk-on-primary);
+  border-color: var(--pk-primary);
+  z-index: 6;
+}
+
+/* New-SOS row highlight that fades over 60 s. */
+@keyframes pk-fresh-row {
+  from { background-color: rgba(211, 47, 47, 0.14); }
+  to { background-color: transparent; }
+}
+.pk-row-fresh { animation: pk-fresh-row 60s linear forwards; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes panel-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.maplibregl-ctrl-attrib {
+  font-family: 'Mukta', system-ui, sans-serif;
+  background: color-mix(in srgb, var(--pk-surface-container-low) 85%, transparent) !important;
+  color: var(--pk-on-surface-variant);
+}
+.maplibregl-ctrl-attrib a { color: var(--pk-on-surface-variant); }
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-pin--fresh .pk-pin__ring { animation: none; }
+  .pk-row-fresh { animation: none; background-color: rgba(211, 47, 47, 0.14); }
+}

@@ -13,17 +13,17 @@ import java.io.File
  * ADB-drivable test hook (debug builds only).
  *
  * Usage:
- *   adb shell am broadcast -a com.bitchat.droid.TEST_HOOK \
+ *   adb shell am broadcast -a app.pukaar.TEST_HOOK \
  *     --es cmd <command> --es id <cmd-id> [command extras...]
  *
  * Result is written to cache/testhook/results/<id>.json and logged under tag TestHook:
- *   adb shell run-as com.bitchat.droid cat cache/testhook/results/<id>.json
+ *   adb shell run-as app.pukaar cat cache/testhook/results/<id>.json
  */
 class TestHookReceiver : BroadcastReceiver() {
 
     companion object {
         const val TAG = "TestHook"
-        const val ACTION = "com.bitchat.droid.TEST_HOOK"
+        const val ACTION = "app.pukaar.TEST_HOOK"
         private const val DEFAULT_OVERALL_TIMEOUT_MS = 180_000L
     }
 

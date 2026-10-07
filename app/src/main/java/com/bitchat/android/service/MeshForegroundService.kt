@@ -301,25 +301,8 @@ class MeshForegroundService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0)
         )
 
-        val title = getString(R.string.app_name)
-        val content = getString(R.string.mesh_service_notification_content, activePeers)
-
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(content)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .setContentIntent(pendingIntent)
-            // Add an action button that appears when notification is expanded
-            .addAction(
-                android.R.drawable.ic_menu_close_clear_cancel,
-                getString(R.string.notification_action_quit_bitchat),
-                quitPendingIntent
-            )
-            .build()
+        // Pukaar: Pukaar's copy, icon and an SOS action (app.pukaar.system.MeshNotification).
+        return app.pukaar.system.MeshNotification.build(this, CHANNEL_ID, activePeers, pendingIntent, quitPendingIntent)
     }
 
     private fun createChannel() {

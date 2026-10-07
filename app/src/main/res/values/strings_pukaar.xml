@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pukaar strings. Kept apart from bitchat's strings.xml so upstream merges stay simple. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <!-- SOS button -->
+    <string name="pk_sos">SOS</string>
+    <string name="pk_sos_tap_for_help">Tap for help</string>
+    <string name="pk_sos_button_description">SOS. Tap to start sending an emergency alert.</string>
+
+    <!-- Connection pill -->
+    <string name="pk_conn_online">Online</string>
+    <plurals name="pk_conn_mesh">
+        <item quantity="one">Connected to %d phone</item>
+        <item quantity="other">Connected to %d phones</item>
+    </plurals>
+    <string name="pk_conn_radio">Radio connected</string>
+    <string name="pk_conn_isolated">No connection. Messages will wait.</string>
+    <plurals name="pk_conn_gateway">
+        <item quantity="one">Online · Helping %d person</item>
+        <item quantity="other">Online · Helping %d people</item>
+    </plurals>
+
+    <!-- Delivery states -->
+    <string name="pk_delivery_sending">Sending</string>
+    <plurals name="pk_delivery_relayed">
+        <item quantity="one">Relayed through %d phone</item>
+        <item quantity="other">Relayed through %d phones</item>
+    </plurals>
+    <string name="pk_delivery_relayed_plain">Relayed</string>
+    <string name="pk_delivery_radio">Sent by radio</string>
+    <string name="pk_delivery_help_notified">Help notified</string>
+    <string name="pk_delivery_attending">Rescuer attending</string>
+    <string name="pk_delivery_resolved">Resolved</string>
+    <!-- %1$s = state, %2$s = time, e.g. "Help notified · 4:09 pm" -->
+    <string name="pk_delivery_with_time">%1$s · %2$s</string>
+
+    <!-- General -->
+    <string name="pk_app_name_short">Pukaar</string>
+    <string name="pk_back">Back</string>
+    <string name="pk_someone">Someone</string>
+    <string name="pk_step_of">Step %1$d of %2$d</string>
+    <string name="pk_conn_none_short">No connection</string>
+    <plurals name="pk_phones_short">
+        <item quantity="one">%d phone</item>
+        <item quantity="other">%d phones</item>
+    </plurals>
+    <plurals name="pk_people_count">
+        <item quantity="one">%d person</item>
+        <item quantity="other">%d people</item>
+    </plurals>
+
+    <!-- SOS flags -->
+    <string name="pk_flag_injured">Injured</string>
+    <string name="pk_flag_trapped">Trapped</string>
+    <string name="pk_flag_water">Need water</string>
+    <string name="pk_flag_medicine">Need medicine</string>
+    <string name="pk_flag_child">Child or elderly</string>
+
+    <!-- SOS status hero copy (design-brief tone of voice) -->
+    <string name="pk_sos_hero_sending">Sending your SOS</string>
+    <string name="pk_sos_hero_sending_body">No phones nearby yet. We\'ll keep trying.</string>
+    <string name="pk_sos_hero_relayed">Your SOS is on its way</string>
+    <string name="pk_sos_hero_relayed_body">Nearby phones are passing it on until one with internet reaches rescuers.</string>
+    <string name="pk_sos_hero_notified">Help has been notified</string>
+    <string name="pk_sos_hero_notified_body">The control room has your location. Stay where you are if it is safe.</string>
+    <string name="pk_sos_hero_attending">A rescuer is on it</string>
+    <string name="pk_sos_hero_attending_body">Stay where you are if it is safe, and keep your phone on.</string>
+    <string name="pk_sos_hero_resolved">Your SOS is resolved</string>
+    <string name="pk_sos_hero_resolved_body">The control room has closed your SOS. Send a new one if you need help again.</string>
+    <string name="pk_sos_hero_safe">You marked yourself safe</string>
+    <string name="pk_sos_hero_safe_body">We told the control room. Send a new SOS if you need help again.</string>
+    <string name="pk_sos_im_safe_short">I\'m safe</string>
+
+    <!-- SMS -->
+    <string name="pk_sms_sos_from">Pukaar SOS from %1$s.</string>
+    <plurals name="pk_sms_people">
+        <item quantity="one">%d person.</item>
+        <item quantity="other">%d people.</item>
+    </plurals>
+    <string name="pk_sms_location">Location: maps.google.com/?q=%1$s,%2$s</string>
+    <string name="pk_sms_no_location">Location not available yet.</string>
+    <string name="pk_sms_time_battery">%1$s · battery %2$d%%</string>
+    <string name="pk_sms_safe">Pukaar: %1$s is safe now.</string>
+    <string name="pk_sms_test">This is a test from Pukaar. %1$s added you as an emergency contact. If they send an SOS, you\'ll get an SMS with their location.</string>
+
+    <!-- Notifications -->
+    <string name="pk_notif_channel_sos">Your SOS</string>
+    <string name="pk_notif_channel_sos_desc">Shows what is happening to your SOS while it is active.</string>
+    <string name="pk_notif_channel_alerts">Nearby SOS and shake</string>
+    <string name="pk_notif_channel_alerts_desc">SOS from people near you, and the shake-to-send countdown.</string>
+    <string name="pk_notif_channel_official">Official messages</string>
+    <string name="pk_notif_channel_official_desc">Messages from the control room in the Disaster Relief chat.</string>
+    <string name="pk_notif_reached_at">Your SOS reached the control room at %1$s</string>
+    <string name="pk_notif_shake_title">Shake detected</string>
+    <string name="pk_notif_shake_text">Tap to open the SOS countdown.</string>
+    <string name="pk_notif_nearby_sos_title">SOS nearby · %1$s</string>
+
+    <!-- Widgets -->
+    <string name="pk_widget_small_desc">A big SOS button</string>
+    <string name="pk_widget_medium_desc">SOS button and connection status</string>
+    <string name="pk_widget_sos_active">SOS active</string>
+    <plurals name="pk_widget_hint">
+        <item quantity="one">Tap SOS. %d second to cancel.</item>
+        <item quantity="other">Tap SOS. %d seconds to cancel.</item>
+    </plurals>
+
+    <!-- Common actions -->
+    <string name="pk_ok">OK</string>
+    <string name="pk_cancel">Cancel</string>
+    <string name="pk_continue">Continue</string>
+    <string name="pk_finish">Finish</string>
+    <string name="pk_done">Done</string>
+    <string name="pk_close">Close</string>
+    <string name="pk_save">Save</string>
+    <string name="pk_add">Add</string>
+    <string name="pk_added">Added</string>
+    <string name="pk_remove">Remove</string>
+    <string name="pk_change">Change</string>
+    <string name="pk_reset">Reset</string>
+    <string name="pk_stop">Stop</string>
+    <string name="pk_later">Later</string>
+    <string name="pk_skip_for_now">Skip for now</string>
+    <string name="pk_not_yet">Not yet</string>
+    <string name="pk_allow">Allow</string>
+    <string name="pk_allowed">Allowed</string>
+    <string name="pk_try_again">Try again</string>
+    <string name="pk_turn_on">Turn on</string>
+    <string name="pk_call">Call</string>
+    <string name="pk_on">On</string>
+    <string name="pk_off">Off</string>
+    <string name="pk_none">None</string>
+    <string name="pk_low">Low</string>
+    <string name="pk_medium">Medium</string>
+    <string name="pk_high">High</string>
+    <string name="pk_more_options">More options</string>
+    <string name="pk_add_contacts">Add contacts</string>
+    <string name="pk_mb">%1$d MB</string>
+    <string name="pk_distance_away">%1$s away</string>
+    <plurals name="pk_seconds">
+        <item quantity="one">%d second</item>
+        <item quantity="other">%d seconds</item>
+    </plurals>
+
+    <!-- Bottom navigation -->
+    <string name="pk_tab_home">Home</string>
+    <string name="pk_tab_chat">Chat</string>
+    <string name="pk_tab_map">Map</string>
+    <string name="pk_tab_guides">Guides</string>
+
+    <!-- Home (2h) -->
+    <string name="pk_home_call">Call</string>
+    <string name="pk_home_explain_online">You have internet. Your SOS goes straight to rescuers.</string>
+    <string name="pk_home_explain_gateway">You have internet and are passing on messages for people nearby.</string>
+    <string name="pk_home_explain_mesh">No internet. Your SOS will hop to help.</string>
+    <string name="pk_home_explain_radio">No phones nearby. Your SOS will go by radio.</string>
+    <string name="pk_home_explain_isolated">No phones nearby yet. Your SOS will wait and keep trying.</string>
+    <string name="pk_home_battery_low">Battery %1$d%%. Lower screen brightness to last longer.</string>
+    <string name="pk_home_offline_missing">The offline map for your area isn\'t saved yet. Tap to see what is saved.</string>
+    <string name="pk_home_sos_active">Your SOS is active</string>
+    <string name="pk_home_see_status">See status</string>
+    <string name="pk_home_tile_unread">%1$s, %2$d unread</string>
+
+    <!-- SOS countdown (2k) -->
+    <string name="pk_countdown_title">Sending your SOS in</string>
+    <string name="pk_countdown_title_practice">Practice: sending in</string>
+    <string name="pk_countdown_seconds_left">%1$d seconds until your SOS is sent</string>
+    <string name="pk_countdown_location_searching">Getting location…</string>
+    <string name="pk_countdown_location_found">Location found · within %1$d m</string>
+    <string name="pk_countdown_location_found_plain">Location found</string>
+    <string name="pk_countdown_location_denied">Location is off for Pukaar. Your SOS will go without it.</string>
+    <string name="pk_countdown_location_none">No location fix yet. We\'ll send the last known one.</string>
+    <string name="pk_countdown_people">People with you</string>
+    <string name="pk_countdown_people_less">One person fewer</string>
+    <string name="pk_countdown_people_more">One person more</string>
+    <string name="pk_countdown_add_message">Add message</string>
+    <string name="pk_countdown_add_message_hint">· pauses the countdown</string>
+    <string name="pk_countdown_message_label">Short message</string>
+    <string name="pk_countdown_message_bytes">%1$d bytes left</string>
+    <string name="pk_countdown_send_now">Send SOS now</string>
+    <string name="pk_countdown_finish_practice">Finish practice</string>
+    <string name="pk_practice_done_title">Practice finished</string>
+    <string name="pk_practice_done_body">Nothing was sent. In a real SOS, your location and details go to nearby phones, rescuers and your emergency contacts.</string>
+
+    <!-- SOS status (2i) -->
+    <string name="pk_sos_status_title">Your SOS</string>
+    <string name="pk_sos_sent_at">Sent %1$s · %2$s</string>
+    <string name="pk_sos_how_travelled">How your SOS travelled</string>
+    <string name="pk_sos_hop_you">Your phone</string>
+    <string name="pk_sos_hop_nearby">Nearby phones</string>
+    <string name="pk_sos_hop_radio">Radio</string>
+    <string name="pk_sos_hop_internet">Phone with internet</string>
+    <string name="pk_sos_hop_rescuers">Rescuers</string>
+    <string name="pk_sos_what_happened">What happened</string>
+    <plurals name="pk_sos_passed_through">
+        <item quantity="one">Reached %d nearby phone</item>
+        <item quantity="other">Reached %d nearby phones</item>
+    </plurals>
+    <string name="pk_sos_what_you_sent">What you sent</string>
+    <string name="pk_sos_update_details">Update details</string>
+    <string name="pk_sos_update_body">Change what you sent. Your SOS goes out again with the new details and your latest location.</string>
+    <string name="pk_sos_send_update">Send update</string>
+    <string name="pk_sos_no_location">Location not available</string>
+    <string name="pk_sos_accuracy">Accurate to %1$d m</string>
+    <string name="pk_sos_family_told">Family told</string>
+    <string name="pk_sos_no_contacts">You haven\'t added emergency contacts, so no family SMS was sent.</string>
+    <string name="pk_family_sent_direct">SMS sent from your phone</string>
+    <string name="pk_family_sent_server">SMS sent by server</string>
+    <string name="pk_family_sending">Sending…</string>
+    <string name="pk_family_waiting">Waiting</string>
+    <string name="pk_family_retry">Not sent yet. Will retry.</string>
+    <string name="pk_sos_tip">Turn your screen brightness down to save battery. Wave something bright if you hear a boat or helicopter.</string>
+    <string name="pk_sos_im_safe_now">I\'m safe now</string>
+    <string name="pk_sos_safe_confirm_title">Mark yourself safe?</string>
+    <string name="pk_sos_safe_confirm_body">We\'ll tell the control room and your family that you\'re safe. Your SOS will stop.</string>
+    <string name="pk_sos_safe_confirm_yes">Yes, I\'m safe</string>
+    <string name="pk_lock_sent_body">Your SOS is going out. Unlock your phone to see what is happening to it.</string>
+    <string name="pk_lock_open_app">Open Pukaar</string>
+
+    <!-- Disaster Relief chat (2l) -->
+    <string name="pk_chat_title">Disaster Relief</string>
+    <plurals name="pk_chat_subtitle">
+        <item quantity="one">%d phone reachable · rescuers can read this</item>
+        <item quantity="other">%d phones reachable · rescuers can read this</item>
+    </plurals>
+    <string name="pk_chat_info">About this chat</string>
+    <string name="pk_chat_info_title">Rescuers can read this chat</string>
+    <string name="pk_chat_info_body">Everyone nearby and the rescue control room can see Disaster Relief messages. Don\'t post anything private here.</string>
+    <string name="pk_chat_official">Official · %1$s</string>
+    <string name="pk_chat_sos_from">SOS · %1$s</string>
+    <string name="pk_chat_you">You</string>
+    <string name="pk_chat_battery">battery %1$d%%</string>
+    <string name="pk_chat_safe_line">%1$s is safe now · %2$s</string>
+    <string name="pk_chat_location_shared">Location shared</string>
+    <string name="pk_chat_location_attached">Your location will be attached</string>
+    <string name="pk_chat_location_add">Attach my location</string>
+    <string name="pk_chat_location_remove">Don\'t attach my location</string>
+    <string name="pk_chat_placeholder">Message everyone</string>
+    <string name="pk_chat_send">Send</string>
+    <string name="pk_chat_send_radio">Send by radio</string>
+    <string name="pk_chat_radio_bytes">%1$d bytes left for radio</string>
+    <string name="pk_chat_reply_safe">Safe</string>
+    <string name="pk_chat_reply_help">Need help</string>
+    <string name="pk_chat_reply_water">Have water to share</string>
+    <string name="pk_chat_empty_title">No messages yet</string>
+    <string name="pk_chat_empty_body">Messages here reach everyone nearby, and rescuers.</string>
+    <string name="pk_chat_empty_isolated">No phones nearby yet. Messages you write will wait and go out when someone comes in range.</string>
+
+    <!-- Network (2j) -->
+    <string name="pk_network_title">Network</string>
+    <string name="pk_network_phones_nearby">phones nearby</string>
+    <plurals name="pk_network_nearby_count">
+        <item quantity="one">%d phone nearby</item>
+        <item quantity="other">%d phones nearby</item>
+    </plurals>
+    <plurals name="pk_network_reach">
+        <item quantity="one">%1$d phone can be reached by hopping through these %2$d.</item>
+        <item quantity="other">%1$d phones can be reached by hopping through these %2$d.</item>
+    </plurals>
+    <string name="pk_network_internet">Internet</string>
+    <string name="pk_network_available">Available</string>
+    <string name="pk_network_not_available">Not available</string>
+    <string name="pk_network_mesh">Bluetooth mesh</string>
+    <plurals name="pk_network_mesh_detail">
+        <item quantity="one">%1$d nearby · %2$d reachable</item>
+        <item quantity="other">%1$d nearby · %2$d reachable</item>
+    </plurals>
+    <string name="pk_network_bluetooth_off">Bluetooth is off</string>
+    <string name="pk_network_radio">Radio device</string>
+    <string name="pk_network_radio_paired">Paired</string>
+    <string name="pk_network_radio_not_paired">Not paired</string>
+    <string name="pk_network_helping">Helping others</string>
+    <string name="pk_network_helping_starts">Starts when you have internet</string>
+    <string name="pk_network_helping_ready">Ready to pass on messages for people nearby</string>
+    <string name="pk_network_helping_no_server">No rescuer server is set up in this version</string>
+    <plurals name="pk_network_helping_count">
+        <item quantity="one">Helping %d person</item>
+        <item quantity="other">Helping %d people</item>
+    </plurals>
+    <plurals name="pk_network_waiting">
+        <item quantity="one">%d message waiting to be delivered</item>
+        <item quantity="other">%d messages waiting to be delivered</item>
+    </plurals>
+    <string name="pk_network_pair_radio">Pair a radio device</string>
+    <string name="pk_radio_unavailable_title">Radio pairing is coming</string>
+    <string name="pk_radio_unavailable_body">Pairing a LoRa radio (Meshtastic) isn\'t available in this version yet. Your SOS still goes over nearby phones and SMS.</string>
+
+    <!-- Map (2p) -->
+    <string name="pk_map_search">Search shelters, hospitals</string>
+    <string name="pk_map_no_results">No places match</string>
+    <string name="pk_map_layer_shelters">Shelters</string>
+    <string name="pk_map_layer_hospitals">Hospitals</string>
+    <string name="pk_map_layer_police">Police</string>
+    <string name="pk_map_shelter">Shelter</string>
+    <string name="pk_map_hospital">Hospital</string>
+    <string name="pk_map_police">Police station</string>
+    <string name="pk_map_nearest_shelter">Nearest shelter</string>
+    <string name="pk_map_distance_direction">%1$s %2$s</string>
+    <string name="pk_map_capacity">room for %1$d</string>
+    <string name="pk_map_no_gps">No location yet</string>
+    <string name="pk_map_no_places">No saved places for this area yet.</string>
+    <string name="pk_map_show_direction">Show direction</string>
+    <string name="pk_map_my_location">My location</string>
+    <string name="pk_map_sample_note">Sample places for testing</string>
+    <string name="pk_map_outside_area">You\'re outside the saved area. Showing its places.</string>
+    <string name="pk_map_tiles_note">Map not saved for offline use</string>
+    <string name="pk_dir_n">north</string>
+    <string name="pk_dir_ne">north-east</string>
+    <string name="pk_dir_e">east</string>
+    <string name="pk_dir_se">south-east</string>
+    <string name="pk_dir_s">south</string>
+    <string name="pk_dir_sw">south-west</string>
+    <string name="pk_dir_w">west</string>
+    <string name="pk_dir_nw">north-west</string>
+
+    <!-- Direction (2q) -->
+    <string name="pk_direction_title">Direction</string>
+    <string name="pk_direction_screen_on">Screen stays on</string>
+    <string name="pk_direction_subtitle">%1$s · straight-line distance</string>
+    <string name="pk_direction_compass_description">The arrow points %1$s</string>
+    <plurals name="pk_direction_walk">
+        <item quantity="one">About %d minute on foot</item>
+        <item quantity="other">About %d minutes on foot</item>
+    </plurals>
+    <string name="pk_direction_warning">The arrow shows a straight line, not a route. Follow safe roads. Keep away from water, debris and damaged buildings.</string>
+    <string name="pk_direction_no_gps">Waiting for your location. Stand in the open if you can.</string>
+    <string name="pk_direction_calibrate">The compass needs calibrating. Move your phone in a figure-eight a few times.</string>
+    <string name="pk_direction_arrived">You have arrived</string>
+    <string name="pk_direction_far">This shelter is more than 5 km away. Tap Change to pick a closer one.</string>
+    <string name="pk_direction_minimap">Map of you and the shelter</string>
+
+    <!-- Emergency calling (2r) -->
+    <string name="pk_call_title">Call for help</string>
+    <string name="pk_call_no_signal_title">No mobile signal</string>
+    <string name="pk_call_no_signal_body">Calls may not connect. An SOS can still reach help through nearby phones.</string>
+    <string name="pk_call_send_sos">Send SOS instead</string>
+    <string name="pk_call_112">Emergency</string>
+    <string name="pk_call_police">Police</string>
+    <string name="pk_call_ambulance">Ambulance</string>
+    <string name="pk_call_fire">Fire</string>
+    <string name="pk_call_women">Women\'s helpline</string>
+    <string name="pk_call_district">District control</string>
+    <string name="pk_call_district_set">Add your district\'s number</string>
+    <string name="pk_call_card_description">Call %1$s, %2$s</string>
+    <string name="pk_call_your_contacts">Your emergency contacts</string>
+
+    <!-- Guides (2s, 2t, 2u) -->
+    <string name="pk_guides_what_to_do">What to do</string>
+    <string name="pk_guides_get_ready">Get ready</string>
+    <string name="pk_guides_stages">Before · During · After</string>
+    <string name="pk_guides_progress">%1$d of %2$d done</string>
+    <string name="pk_guides_coming">Coming soon</string>
+    <string name="pk_guides_saved">Saved on this phone. Source: NDMA.</string>
+    <string name="pk_guide_flood">Flood</string>
+    <string name="pk_guide_earthquake">Earthquake</string>
+    <string name="pk_guide_fire">Fire</string>
+    <string name="pk_guide_before">Before</string>
+    <string name="pk_guide_during">During</string>
+    <string name="pk_guide_after">After</string>
+    <string name="pk_guide_large_text">Large text</string>
+    <string name="pk_guide_not_added">The official NDMA guidance for this part hasn\'t been added yet.</string>
+    <string name="pk_guide_source">Source: NDMA.</string>
+    <string name="pk_guide_source_sample">Source: NDMA, flood guidelines. Sample wording, to be replaced with the official NDMA text.</string>
+    <!-- Sample wording from the design handoff (2t). Replace with the official NDMA text. -->
+    <string-array name="pk_guide_flood_during">
+        <item>Move to the highest floor or the roof. Take your go-bag.</item>
+        <item>Switch off electricity and gas at the main switch.</item>
+        <item>Do not walk or drive through moving water.</item>
+        <item>Drink only boiled, filtered or bottled water.</item>
+        <item>Keep your phone dry and save its battery.</item>
+    </string-array>
+    <string name="pk_checklist_gobag">Go-bag</string>
+    <string name="pk_checklist_home">Home safety</string>
+    <string name="pk_checklist_progress">%1$d of %2$d done</string>
+    <string name="pk_checklist_not_added">The home-safety checklist from NDMA hasn\'t been added yet.</string>
+    <string name="pk_gobag_group_documents">Documents</string>
+    <string name="pk_gobag_group_food">Water and food</string>
+    <string name="pk_gobag_group_health">Health</string>
+    <string name="pk_gobag_group_power">Light and power</string>
+    <string name="pk_gobag_group_other">Other</string>
+    <string name="pk_gobag_ids">Aadhaar and ration card copies</string>
+    <string name="pk_gobag_bank">Bank papers in a plastic bag</string>
+    <string name="pk_gobag_water">Drinking water, 3 litres</string>
+    <string name="pk_gobag_food">Dry food for 3 days</string>
+    <string name="pk_gobag_ors">ORS packets</string>
+    <string name="pk_gobag_medicines">Medicines for 1 week</string>
+    <string name="pk_gobag_firstaid">First-aid kit</string>
+    <string name="pk_gobag_torch">Torch</string>
+    <string name="pk_gobag_powerbank">Charged power bank</string>
+    <string name="pk_gobag_batteries">Spare batteries</string>
+    <string name="pk_gobag_whistle">Whistle</string>
+    <string name="pk_gobag_rope">Rope, 10 metres</string>
+
+    <!-- Settings (2v) -->
+    <string name="pk_settings_title">Settings</string>
+    <string name="pk_settings_language">Language</string>
+    <string name="pk_lang_hindi">हिन्दी</string>
+    <string name="pk_lang_english">English</string>
+    <string name="pk_settings_profile">Profile</string>
+    <string name="pk_settings_profile_empty">Add your name and details</string>
+    <string name="pk_settings_contacts">Emergency contacts</string>
+    <string name="pk_settings_sos_triggers">SOS triggers</string>
+    <string name="pk_settings_shake">Shake to send SOS</string>
+    <string name="pk_settings_shake_hint">Shake hard 3 times</string>
+    <string name="pk_settings_sensitivity">Shake sensitivity</string>
+    <string name="pk_settings_countdown">Countdown length</string>
+    <string name="pk_settings_tile_widget">Quick Settings tile and widget</string>
+    <string name="pk_settings_tile_widget_hint">How to add them</string>
+    <string name="pk_settings_offline">Offline data</string>
+    <string name="pk_settings_offline_needs_internet">Needs internet</string>
+    <string name="pk_settings_radio">Radio device</string>
+    <string name="pk_settings_radio_none">No radio paired</string>
+    <string name="pk_settings_radio_hint">A LoRa radio sends SOS when no phones are near</string>
+    <string name="pk_settings_radio_pair">Pair a radio</string>
+    <string name="pk_settings_battery">Battery saver</string>
+    <string name="pk_settings_battery_auto">Turn on below 20%</string>
+    <string name="pk_settings_battery_auto_hint">Scans for phones less often</string>
+    <string name="pk_settings_battery_now">Battery saver now</string>
+    <string name="pk_settings_theme">Theme</string>
+    <string name="pk_theme_dark">Dark</string>
+    <string name="pk_theme_light">Light</string>
+    <string name="pk_theme_sunlight">Sunlight</string>
+    <string name="pk_theme_system">System</string>
+    <string name="pk_settings_theme_hint">Sunlight is extra high contrast for use outdoors.</string>
+    <string name="pk_settings_calling">Calling</string>
+    <string name="pk_settings_district_hint">The number of your district\'s disaster control room. It appears on the calling screen.</string>
+    <string name="pk_settings_about">About Pukaar</string>
+    <string name="pk_settings_about_hint">Version %1$s · credits and open-source licences</string>
+    <string name="pk_offline_unknown_region">Your area</string>
+
+    <!-- Profile and contacts (2d, 2e, 2w) -->
+    <string name="pk_profile_name">Name</string>
+    <string name="pk_profile_phone">Phone number</string>
+    <string name="pk_profile_blood">Blood group · optional</string>
+    <string name="pk_profile_blood_unknown">Don\'t know</string>
+    <string name="pk_profile_notes">Medical notes · optional</string>
+    <string name="pk_profile_notes_hint">For example: diabetic, uses an inhaler</string>
+    <string name="pk_profile_why">Rescuers see this with your SOS when it reaches them.</string>
+    <string name="pk_contacts_pick">Pick from contacts</string>
+    <string name="pk_contacts_add_manually">Add manually</string>
+    <string name="pk_contacts_add_title">Add a contact</string>
+    <string name="pk_contacts_relation">Relationship · optional</string>
+    <string name="pk_contacts_relation_hint">For example: sister</string>
+    <string name="pk_contacts_count">%1$d of %2$d added</string>
+    <string name="pk_contacts_count_more">%1$d of %2$d · you can add %3$d more</string>
+    <string name="pk_contacts_not_added">Couldn\'t add this contact. Check the number, that it isn\'t on the list already, and that you have fewer than %1$d contacts.</string>
+    <string name="pk_contacts_remove_named">Remove %1$s</string>
+    <string name="pk_contacts_send_test">Send test</string>
+    <string name="pk_contacts_test_none">Not tested yet</string>
+    <string name="pk_contacts_test_sending">Sending test…</string>
+    <string name="pk_contacts_test_sent">Test SMS sent · %1$s</string>
+    <string name="pk_contacts_test_delivered">Test SMS delivered · %1$s</string>
+    <string name="pk_contacts_test_failed">Test not sent. Check signal and SMS permission.</string>
+    <string name="pk_contacts_preview_title">What they will receive</string>
+    <string name="pk_contacts_preview_from">SMS from %1$s</string>
+    <string name="pk_contacts_preview_note">A real SOS also lists the people with you, what you need and your message.</string>
+
+    <!-- SOS setup (2g) -->
+    <string name="pk_setup_title">Quick Settings tile and widget</string>
+    <string name="pk_setup_tile">Quick Settings tile</string>
+    <string name="pk_setup_tile_hint">Swipe down from the top, tap SOS</string>
+    <string name="pk_setup_tile_manual">Swipe down twice, tap the pencil, and drag Pukaar SOS into your tiles</string>
+    <string name="pk_setup_widget">Home and lock-screen widget</string>
+    <string name="pk_setup_widget_hint">A big SOS button on your screen</string>
+    <string name="pk_setup_widget_manual">Touch and hold your home screen, tap Widgets, and find Pukaar</string>
+    <plurals name="pk_setup_countdown_note">
+        <item quantity="one">Every SOS starts with a %d-second countdown, so you can cancel one sent by mistake.</item>
+        <item quantity="other">Every SOS starts with a %d-second countdown, so you can cancel one sent by mistake.</item>
+    </plurals>
+    <string name="pk_setup_practice">Practice SOS</string>
+    <string name="pk_setup_practice_hint">Practice runs the countdown. Nothing is sent.</string>
+
+    <!-- Onboarding (2m to 2g) -->
+    <string name="pk_onb_more_languages">More languages coming</string>
+    <string name="pk_onb_welcome_title">Call for help, even with no network</string>
+    <string name="pk_onb_welcome_body">Pukaar passes your message from phone to phone until it reaches rescuers and your family.</string>
+    <string name="pk_onb_how_title">How Pukaar works</string>
+    <string name="pk_onb_how_1_title">Messages hop phone to phone</string>
+    <string name="pk_onb_how_1_body">Over Bluetooth. No internet or SIM needed.</string>
+    <string name="pk_onb_how_2_title">Any phone with internet passes them on</string>
+    <string name="pk_onb_how_2_body">It happens on its own, in the background.</string>
+    <string name="pk_onb_how_3_title">Rescuers see them on a map</string>
+    <string name="pk_onb_how_3_body">And your family gets an SMS.</string>
+    <string name="pk_onb_how_visible">Rescuers can read the Disaster Relief chat. Don\'t post anything private there.</string>
+    <string name="pk_onb_perm_title">What Pukaar needs</string>
+    <string name="pk_perm_nearby">Nearby phones</string>
+    <string name="pk_perm_nearby_why">To pass messages without internet</string>
+    <string name="pk_perm_nearby_impact">Not allowed. Pukaar can\'t reach nearby phones, so messages and SOS can only go by SMS.</string>
+    <string name="pk_perm_location">Location</string>
+    <string name="pk_perm_location_why">So rescuers know where you are</string>
+    <string name="pk_perm_location_impact">Not allowed. Your SOS will go without your location.</string>
+    <string name="pk_perm_notifications">Notifications</string>
+    <string name="pk_perm_notifications_why">To tell you when help replies</string>
+    <string name="pk_perm_notifications_impact">Not allowed. You won\'t see replies from rescuers or SOS from people nearby.</string>
+    <string name="pk_perm_sms">SMS</string>
+    <string name="pk_perm_sms_why">To text your family when there\'s signal</string>
+    <string name="pk_perm_sms_impact">Not allowed. Your family will only hear from the server, once your SOS reaches it.</string>
+    <string name="pk_perm_phone">Phone</string>
+    <string name="pk_perm_phone_why">For one-tap emergency calls</string>
+    <string name="pk_perm_phone_impact">Not allowed. Calls will open the dialler first, so it takes one more tap.</string>
+    <string name="pk_onb_details_title">About you</string>
+    <string name="pk_onb_details_body">Rescuers see this with your SOS.</string>
+    <string name="pk_onb_contacts_title">Who should we tell?</string>
+    <string name="pk_onb_contacts_body">They get an SMS with your location when you send an SOS. Up to 5 people.</string>
+    <string name="pk_onb_offline_title">Save your area for offline use</string>
+    <string name="pk_onb_offline_body">Download now while you have internet. It works later without any network.</string>
+    <string name="pk_onb_offline_detected">Detected from your location</string>
+    <string name="pk_onb_offline_download">Download about %1$d MB</string>
+    <string name="pk_onb_offline_wifi">You\'re on Wi-Fi. This won\'t use mobile data.</string>
+    <string name="pk_offline_map">Offline map</string>
+    <string name="pk_offline_map_detail">Roads, rivers, villages</string>
+    <string name="pk_offline_places">Shelters, hospitals, police</string>
+    <string name="pk_offline_places_detail">Saved with the app</string>
+    <string name="pk_offline_guides">Safety guides</string>
+    <string name="pk_offline_guides_detail">Flood, earthquake, fire</string>
+    <string name="pk_offline_saved">Saved</string>
+    <string name="pk_onb_setup_title">Three more ways to send SOS</string>
+    <string name="pk_onb_setup_body">They work even when Pukaar is closed or the phone is locked.</string>
+
+    <!-- About -->
+    <string name="pk_about_version">Version %1$s</string>
+    <string name="pk_about_body">Pukaar helps people in a disaster send an SOS and talk to each other when there is no network. Messages pass phone to phone over Bluetooth until a phone with internet uploads them.</string>
+    <string name="pk_about_credits">Credits and licences</string>
+    <string name="pk_about_bitchat">Built on bitchat</string>
+    <string name="pk_about_bitchat_licence">Bluetooth mesh by the bitchat project · GNU GPL v3</string>
+
+    <!-- Start-up checks (replace bitchat's screens) -->
+    <string name="pk_check_again">Check again</string>
+    <string name="pk_check_open_settings">Open settings</string>
+    <string name="pk_check_bt_title">Turn on Bluetooth</string>
+    <string name="pk_check_bt_body">Pukaar uses Bluetooth to pass messages and SOS between phones when there is no network.</string>
+    <string name="pk_check_bt_turn_on">Turn on Bluetooth</string>
+    <string name="pk_check_bt_skip">Continue without Bluetooth</string>
+    <string name="pk_check_bt_impact">Without Bluetooth, your SOS can only go by SMS or internet.</string>
+    <string name="pk_check_bt_unsupported_title">This phone has no Bluetooth</string>
+    <string name="pk_check_bt_unsupported_body">Pukaar can\'t pass messages to nearby phones. SOS will go by SMS or internet when there is signal.</string>
+    <string name="pk_check_loc_title">Turn on location</string>
+    <string name="pk_check_loc_body">Android needs location turned on to find nearby phones over Bluetooth. It also lets your SOS say where you are.</string>
+    <string name="pk_check_loc_turn_on">Turn on location</string>
+    <string name="pk_check_loc_why">Pukaar only shares your location in an SOS or when you attach it to a message.</string>
+    <string name="pk_check_loc_unavailable_title">Location isn\'t available</string>
+    <string name="pk_check_loc_unavailable_body">This phone can\'t provide location, so Pukaar can\'t look for nearby phones.</string>
+    <string name="pk_check_battery_title">Let Pukaar run in the background</string>
+    <string name="pk_check_battery_body">Battery saving can stop Pukaar when the screen is off. Then your phone can\'t pass on messages or send your SOS.</string>
+    <string name="pk_check_battery_allow">Allow background use</string>
+    <string name="pk_check_battery_point1">Your SOS keeps trying while the phone is locked</string>
+    <string name="pk_check_battery_point2">You help pass on other people\'s messages</string>
+    <string name="pk_check_perm_title">Pukaar still needs these</string>
+    <string name="pk_check_perm_body">Without them, Pukaar can\'t reach nearby phones or send your SOS properly.</string>
+    <string name="pk_perm_microphone">Microphone</string>
+    <string name="pk_perm_microphone_why">For voice messages</string>
+    <string name="pk_perm_other">Other access</string>
+    <string name="pk_perm_other_why">Needed for the Bluetooth mesh to work</string>
+    <string name="pk_check_bg_title">Keep working when Pukaar is closed</string>
+    <string name="pk_check_bg_body">Android asks for location \"all the time\" so Pukaar can find nearby phones while it\'s closed, and reconnect after a restart.</string>
+    <string name="pk_check_bg_allow">Allow all the time</string>
+    <string name="pk_check_bg_how">When settings open, choose \"Allow all the time\".</string>
+    <string name="pk_check_bg_privacy">Pukaar never stores or shares your location in the background. It is only sent in an SOS or when you attach it.</string>
+    <string name="pk_check_starting">Starting Pukaar…</string>
+    <string name="pk_check_error_title">Pukaar couldn\'t start</string>
+    <string name="pk_check_error_body">Some permissions may have been turned off. Try again, or open settings and allow them.</string>
+
+    <!-- Persistent mesh notification (2x) -->
+    <string name="pk_mesh_notif_title">Pukaar · running</string>
+    <string name="pk_mesh_notif_no_peers">No phones nearby yet</string>
+    <string name="pk_mesh_notif_with_waiting">%1$s · %2$s</string>
+    <plurals name="pk_mesh_notif_waiting">
+        <item quantity="one">%d message waiting</item>
+        <item quantity="other">%d messages waiting</item>
+    </plurals>
+    <string name="pk_mesh_notif_quit">Quit Pukaar</string>
+
+    <!-- Full-screen alert permission (Android 14+) -->
+    <string name="pk_setup_fullscreen_title">Allow SOS over the lock screen</string>
+    <string name="pk_setup_fullscreen_body">So that shaking a locked phone opens the SOS countdown straight away. Without it, you\'ll get a notification to tap first.</string>
+
+    <!-- Offline map (MapLibre) -->
+    <string name="pk_map_attribution">© OpenStreetMap contributors · OpenFreeMap</string>
+    <string name="pk_offline_area_here">Your area</string>
+    <string name="pk_offline_downloading">Downloading… %1$d%%</string>
+    <string name="pk_offline_saved_detail">%1$d MB · saved %2$s</string>
+    <string name="pk_offline_not_saved">Map not saved · about %1$d MB</string>
+    <string name="pk_offline_about_mb">about %1$d MB</string>
+    <string name="pk_offline_download">Download</string>
+    <string name="pk_offline_failed">The download didn\'t finish. Try again when you have internet.</string>
+    <string name="pk_offline_delete">Delete offline map</string>
+    <string name="pk_settings_offline_bundled">Shelters, hospitals, police and guides</string>
+    <string name="pk_settings_offline_bundled_hint">Saved with the app</string>
+    <string name="pk_onb_offline_continue_bg">Continue while it downloads</string>
+    <string name="pk_onb_offline_no_internet">No internet right now. You can download the map later from Settings.</string>
+
+    <!-- Helping people nearby -->
+    <string name="pk_map_sos_title">SOS · %1$s</string>
+    <string name="pk_map_sos_help_hint">Only go if it is safe for you. If any phone nearby has internet, rescuers have already been told.</string>
+    <string name="pk_chat_sos_safe">Safe now</string>
+    <string name="pk_chat_sos_open_map">Tap to see where on the map</string>
+    <string name="pk_home_last_message">%1$s · %2$s</string>
+    <string name="pk_contacts_edit">Edit</string>
+    <string name="pk_contacts_edit_title">Edit contact</string>
+    <!-- Offline area while waiting for a location fix -->
+    <string name="pk_offline_locating">Finding your location…</string>
+    <string name="pk_offline_no_location">Location not found, so this is the sample region. Turn on location to save your own area.</string>
+
+    <!-- Rescuer dashboard: control-room messages, undo and reopen, old location -->
+    <string name="pk_sos_control_messages_title">From the control room</string>
+    <string name="pk_notif_control_message_title">Message from the control room</string>
+    <string name="pk_sos_control_message_meta">%1$s · %2$s</string>
+    <string name="pk_sos_event_back_to_new">The control room moved your SOS back to waiting</string>
+    <string name="pk_sos_event_reopened">The control room reopened your SOS</string>
+    <string name="pk_sos_location_old">Your last known location, from %1$s</string>
+</resources>

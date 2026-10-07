@@ -48,11 +48,10 @@ internal object DefaultApkDownloadSources {
             id = GITHUB_ID,
             displayName = "GitHub Releases",
             latestApkUrls = listOf(
-                "https://github.com/permissionlesstech/bitchat-android/releases/latest/" +
-                    "download/bitchat-android-universal.apk",
-                // Releases published before the stable asset-name rollout use
-                // this filename. Remove when supported releases all use the primary URL.
-                "https://github.com/permissionlesstech/bitchat-android/releases/latest/" +
+                "https://github.com/ayusharma03/pukaar_android/releases/latest/" +
+                    "download/pukaar-android-universal.apk",
+                // Fallback: the APK name Gradle produces, if a release is uploaded without renaming it.
+                "https://github.com/ayusharma03/pukaar_android/releases/latest/" +
                     "download/app-universal-release.apk"
             )
         )
