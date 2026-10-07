@@ -17,6 +17,7 @@ This repo is a fork of bitchat-android, which provides the Bluetooth mesh.
 | Message formats, fallback rules | `docs/protocol.md` |
 | System design | `docs/architecture.md` |
 | Rescuer dashboard (web, separate project) | `pukaar_web/CLAUDE.md`, `docs/dashboard-plan.md` |
+| App changes the dashboard needs | `docs/android-dashboard-integration.md` |
 
 `docs/design/Pukaar App Screens.html` is large (about 1.8 MB). Don't read it whole; search it or use the v2 file instead.
 

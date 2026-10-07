@@ -68,7 +68,7 @@ Any phone with internet is a gateway (FR-4). Set the server base URL at build ti
 - New dashboard broadcasts are relayed into the mesh as `PKOFF1`.
 - The gateway polls every 30 seconds while online.
 - Optional fields from newer phones: `hops` (mesh hops the copy took; the server keeps the fewest), `radioNode` (the LoRa node that heard it, with `via: "radio"`) and `locationAt` (when the fix is older than the SOS). The server also adds `area: {block, village}` from the location for the dashboard.
-- `messages` in a status are control-room messages to that one sender, signed over `PKMSG1|sosId|msgId|time|from|text` (same key as acks, `from` cleaned like `by`). Each is at most 200 bytes so it fits a radio packet. The gateway should relay them to the sender like an Ack. **Not yet handled by the Android app.**
+- `messages` in a status are control-room messages to that one sender, signed over `PKMSG1|sosId|msgId|time|from|text` (same key as acks, `from` cleaned like `by`). Each is at most 200 bytes so it fits a radio packet. The gateway should relay them to the sender like an Ack. **Not yet handled by the Android app** (see [android-dashboard-integration.md](android-dashboard-integration.md)).
 - `POST /v1/sos/sms` and `POST /v1/broadcasts/seen` are **not yet sent by the Android app.** Until they are, the dashboard shows only server-sent family texts and broadcast reach stays at 0.
 
 ### Dashboard routes
