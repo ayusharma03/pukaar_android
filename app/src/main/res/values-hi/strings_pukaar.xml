@@ -597,4 +597,12 @@
     <!-- Offline area while waiting for a location fix. NEEDS REVIEW by a native speaker. -->
     <string name="pk_offline_locating">आपकी लोकेशन खोजी जा रही है…</string>
     <string name="pk_offline_no_location">लोकेशन नहीं मिली, इसलिए यह नमूना इलाका है। अपना इलाका सेव करने के लिए लोकेशन चालू करें।</string>
+
+    <!-- Rescuer dashboard: control-room messages, undo and reopen, old location. NEEDS REVIEW by a native speaker. -->
+    <string name="pk_sos_control_messages_title">कंट्रोल रूम से</string>
+    <string name="pk_notif_control_message_title">कंट्रोल रूम से संदेश</string>
+    <string name="pk_sos_control_message_meta">%1$s · %2$s</string>
+    <string name="pk_sos_event_back_to_new">कंट्रोल रूम ने आपके SOS को फिर से इंतज़ार में डाला</string>
+    <string name="pk_sos_event_reopened">कंट्रोल रूम ने आपका SOS फिर से खोला</string>
+    <string name="pk_sos_location_old">आपकी आख़िरी पता लोकेशन, %1$s की</string>
 </resources>

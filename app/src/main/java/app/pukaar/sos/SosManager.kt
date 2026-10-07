@@ -34,13 +34,18 @@ data class SosDetails(
 /** Delivery stages in order (handoff "Delivery states"). */
 enum class SosStage { Sending, Relayed, SentByRadio, HelpNotified, RescuerAttending, Resolved }
 
-data class SosEvent(val stage: SosStage, val at: Long, val detail: String? = null)
+/** [back] is true when the control room moved the SOS back (undo, or reopened after resolved). */
+data class SosEvent(val stage: SosStage, val at: Long, val detail: String? = null, val back: Boolean = false)
 
 data class SosLocation(val lat: Double, val lon: Double, val accuracyM: Int?, val at: Long)
 
 enum class FamilyStatus { Waiting, Sending, SentDirect, SentByServer, Failed }
 
-data class FamilyNotice(val contactId: String, val name: String, val phone: String, val status: FamilyStatus, val attempts: Int = 0)
+/** [at] is when the phone's own text was sent or failed (ms), for the report to the server. */
+data class FamilyNotice(val contactId: String, val name: String, val phone: String, val status: FamilyStatus, val attempts: Int = 0, val at: Long = 0)
+
+/** A signed message from the control room for this SOS (dashboard D3, `PKMSG1`). */
+data class ControlMessage(val id: String, val from: String, val text: String, val at: Long)
 
 data class ActiveSos(
     val id: String,
@@ -58,6 +63,12 @@ data class ActiveSos(
     val safeAt: Long? = null,
     val lastMeshSendAt: Long = 0,
     val meshPeersSeen: Set<String> = emptySet(),
+    /** Server time (s) of the last status applied, so an older ack arriving late is ignored. */
+    val lastAckTime: Long = 0,
+    /** Oldest first. Nullable: older saved JSON has no such field. */
+    val messages: List<ControlMessage>? = null,
+    /** [familyReport] last reported to the server, so each change to the phone's own texts is sent once. */
+    val familyReported: String? = null,
 ) {
     val closed: Boolean get() = safeAt != null || stage == SosStage.Resolved
     val hasLocation: Boolean get() = location != null
@@ -180,30 +191,57 @@ object SosManager {
 
     /** Called for every Pukaar packet seen on the mesh. */
     fun onPacket(packet: PukaarPacket) {
-        if (packet !is AckPacket) return
         val sos = _active.value ?: return
-        if (packet.id != sos.id) return
-        // Only the server's signature makes an ack real; anyone on the mesh could forge one.
-        if (!packet.verified()) return
-        applyServerStatus(packet.status, packet.by, packet.timeSec * 1000, packet.smsSent)
+        when (packet) {
+            is AckPacket -> {
+                if (packet.id != sos.id) return
+                // Only the server's signature makes an ack real; anyone on the mesh could forge one.
+                if (!packet.verified()) return
+                applyServerStatus(packet.status, packet.by, packet.timeSec * 1000, packet.smsSent, ackTimeSec = packet.timeSec)
+            }
+            is MessagePacket -> {
+                if (packet.sosId != sos.id || !packet.verified()) return
+                addControlMessage(packet)
+            }
+            else -> Unit
+        }
     }
 
-    private fun applyServerStatus(status: AckStatus, by: String, at: Long, smsSent: Boolean = false) {
-        val stage = when (status) {
-            AckStatus.Notified -> SosStage.HelpNotified
-            AckStatus.Attending -> SosStage.RescuerAttending
-            AckStatus.Resolved -> SosStage.Resolved
+    private fun addControlMessage(packet: MessagePacket) {
+        scope.launch {
+            val message = ControlMessage(packet.id, packet.from, packet.text, packet.timeSec * 1000)
+            var added = false
+            update { s ->
+                val list = s.messages.orEmpty()
+                if (s.id != packet.sosId || list.any { it.id == message.id }) s
+                else s.copy(messages = (list + message).takeLast(MAX_MESSAGES)).also { added = true }
+            } ?: return@launch
+            if (added) SosNotifier.showControlMessage(appContext, message)
         }
+    }
+
+    /**
+     * Applies a status from the server. Signed acks ([ackTimeSec] set) are ordered by the server's
+     * time, so the control room can move an SOS back (undo, reopen). The direct-upload reply has no
+     * server time and only ever moves the SOS forward.
+     */
+    private fun applyServerStatus(status: AckStatus, by: String, at: Long, smsSent: Boolean = false, ackTimeSec: Long? = null) {
         scope.launch {
             val changed = update { current ->
                 val sos = if (smsSent) current.copy(family = current.family.map {
                     if (it.status != FamilyStatus.SentDirect) it.copy(status = FamilyStatus.SentByServer) else it
                 }) else current
-                if (stage.ordinal <= sos.stage.ordinal) sos
-                else sos.copy(
+                val stage = if (ackTimeSec != null) {
+                    nextStage(sos.stage, sos.lastAckTime, status, ackTimeSec, safe = sos.safeAt != null) ?: return@update sos
+                } else {
+                    status.toStage().takeIf { it.ordinal > sos.stage.ordinal } ?: return@update sos
+                }
+                val timed = if (ackTimeSec != null) sos.copy(lastAckTime = ackTimeSec) else sos
+                if (stage == timed.stage) timed
+                else timed.copy(
                     stage = stage,
-                    handledBy = by.ifBlank { sos.handledBy },
-                    events = sos.events + SosEvent(stage, at, by.ifBlank { null }),
+                    handledBy = by.ifBlank { timed.handledBy },
+                    events = timed.events + SosEvent(stage, at, by.ifBlank { null }, back = stage.ordinal < timed.stage.ordinal),
                 )
             }
             changed?.let { if (it.closed) SosNotifier.cancelActive(appContext) else SosNotifier.showActive(appContext, it) }
@@ -212,6 +250,7 @@ object SosManager {
 
     private suspend fun tick() {
         val sos = _active.value ?: return
+        reportFamilySms()
         if (sos.closed) return
         val age = System.currentTimeMillis() - sos.startedAt
         val interval = if (age < 5 * 60_000) 30_000L else 120_000L
@@ -262,7 +301,7 @@ object SosManager {
         due.forEach { notice ->
             SmsSender.send(appContext, notice.phone, text, onSent = { ok ->
                 scope.launch {
-                    update { s -> s.withFamily(notice.contactId) { it.copy(status = if (ok) FamilyStatus.SentDirect else FamilyStatus.Failed) } }
+                    update { s -> s.withFamily(notice.contactId) { it.copy(status = if (ok) FamilyStatus.SentDirect else FamilyStatus.Failed, at = System.currentTimeMillis()) } }
                 }
             })
         }
@@ -275,13 +314,34 @@ object SosManager {
         val sos = _active.value ?: return
         if (sos.closed || !DeviceStatus.internet.value || !Gateway.configured) return
         if (!force && sos.stage.ordinal >= SosStage.HelpNotified.ordinal && lastUploadId == sos.id && lastUploadSeq >= sos.seq) return
-        val result = Gateway.uploadSos(sos.toPacket(), via = "direct", relayedBy = null, profile = PukaarStore.profile.value, contacts = PukaarStore.contacts.value) ?: return
+        val result = Gateway.uploadSos(
+            sos.toPacket(), via = "direct", relayedBy = null, profile = PukaarStore.profile.value, contacts = PukaarStore.contacts.value,
+            locationAtSec = sos.staleLocationAt()?.div(1000),
+        ) ?: return
         lastUploadId = sos.id
         lastUploadSeq = sos.seq
         applyServerStatus(result.status, result.by, System.currentTimeMillis(), result.smsSent)
+        // The SOS now certainly exists on the server, so texts already sent can be reported.
+        reportFamilySms()
+    }
+
+    /**
+     * Tells the server about family texts this phone sent itself (`POST /v1/sos/sms`), so the
+     * dashboard doesn't say "no contacts" for an SOS that came in only through the mesh. Numbers go
+     * only over HTTPS from this phone, never over the mesh. A failure (404 while the SOS hasn't
+     * reached the server yet) is retried on the next tick.
+     */
+    private suspend fun reportFamilySms() {
+        val sos = _active.value ?: return
+        if (!DeviceStatus.internet.value || !Gateway.configured) return
+        val report = familyReport(sos.family)
+        if (report.isEmpty() || report == sos.familyReported) return
+        if (Gateway.reportFamilySms(sos.id, sos.family)) update { if (it.id == sos.id) it.copy(familyReported = report) else it }
     }
 
     // MARK: helpers
+
+    private const val MAX_MESSAGES = 20
 
     private var cachedContacts: Pair<String, ContactsPacket?>? = null
 
@@ -381,3 +441,32 @@ object SosManager {
         prefs.edit().putString("active", gson.toJson(sos)).apply()
     }
 }
+
+/** Fix time (ms) when the location is more than 2 minutes older than the SOS, else null. */
+fun ActiveSos.staleLocationAt(): Long? = location?.at?.takeIf { it > 0 && it < startedAt - 120_000 }
+
+internal fun AckStatus.toStage() = when (this) {
+    AckStatus.Notified -> SosStage.HelpNotified
+    AckStatus.Attending -> SosStage.RescuerAttending
+    AckStatus.Resolved -> SosStage.Resolved
+}
+
+/**
+ * The stage after applying a signed server ack, or null to ignore it.
+ *
+ * Acks are ordered by the server's time, not by stage, so an undo ("attended" back to "new") or a
+ * reopen ("resolved" back to "attended") reaches the person. An ack that isn't newer than the last
+ * one applied is stale. Once the person has said they're safe, the control room can't move the
+ * SOS back on their phone: their choice wins.
+ */
+internal fun nextStage(current: SosStage, lastAckTime: Long, ack: AckStatus, ackTime: Long, safe: Boolean): SosStage? {
+    if (ackTime <= lastAckTime) return null
+    val target = ack.toStage()
+    if (safe && target.ordinal < current.ordinal) return null
+    return target
+}
+
+/** The phone's own texts worth reporting (sent or failed), as a stable key for "already reported". */
+internal fun familyReport(family: List<FamilyNotice>): String =
+    family.filter { it.status == FamilyStatus.SentDirect || it.status == FamilyStatus.Failed }
+        .joinToString(";") { "${it.phone}=${it.status}" }

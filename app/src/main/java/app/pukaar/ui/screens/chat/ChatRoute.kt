@@ -116,7 +116,7 @@ internal fun buildChatItems(
             is OfficialPacket -> if (packet.verified()) {
                 officials.getOrPut(packet.id) { ChatItem.Official("off-${packet.id}", packet.from, packet.text, msg.timestamp.time) }
             }
-            is AckPacket, is ContactsPacket -> Unit
+            is AckPacket, is ContactsPacket, is app.pukaar.sos.MessagePacket -> Unit
             null -> {
                 val (text, loc) = Packets.splitLocation(msg.content)
                 val delivery: DeliveryStatus? = if (!own) null else when {

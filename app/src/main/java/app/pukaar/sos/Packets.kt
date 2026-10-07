@@ -13,6 +13,7 @@ object Packets {
     const val ACK = "PKACK1"
     const val OFFICIAL = "PKOFF1"
     const val CONTACTS = "PKCT1"
+    const val MESSAGE = "PKMSG1"
     const val MAX_SOS_BYTES = 200
     private const val MAX_NAME_BYTES = 24
     private val LOCATION_TAG = Regex("""\s*\[loc:(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)]\s*$""")
@@ -23,6 +24,7 @@ object Packets {
         content.startsWith("$ACK|") -> AckPacket.decode(content)
         content.startsWith("$OFFICIAL|") -> OfficialPacket.decode(content)
         content.startsWith("$CONTACTS|") -> ContactsPacket.decode(content)
+        content.startsWith("$MESSAGE|") -> MessagePacket.decode(content)
         else -> null
     }
 
@@ -222,6 +224,33 @@ data class ContactsPacket(val id: String, val encrypted: Boolean, val data: Stri
             val p = content.split("|", limit = 4)
             if (p.size < 4 || (p[2] != "e" && p[2] != "p")) return null
             return ContactsPacket(p[1], p[2] == "e", p[3])
+        }
+    }
+}
+
+/**
+ * `PKMSG1|sosId|msgId|time|sig|from|text`: a control-room message for the person who sent SOS
+ * `sosId` (dashboard D3), relayed by a gateway phone. `sig` signs [signedText]
+ * (`PKMSG1|sosId|msgId|time|from|text`). Unsigned or badly signed ones must be ignored.
+ */
+data class MessagePacket(
+    val sosId: String,
+    val id: String,
+    val timeSec: Long,
+    val from: String,
+    val text: String,
+    val sig: String,
+) : PukaarPacket {
+    fun signedText() = "${Packets.MESSAGE}|$sosId|$id|$timeSec|${Packets.clean(from)}|$text"
+    fun encode() = "${Packets.MESSAGE}|$sosId|$id|$timeSec|$sig|${Packets.clean(from)}|$text"
+    fun verified(key: ByteArray? = ServerCrypto.signKey) = ServerCrypto.verify(signedText(), sig, key)
+
+    companion object {
+        fun decode(content: String): MessagePacket? {
+            val p = content.split("|", limit = 7)
+            if (p.size < 7) return null
+            val time = p[3].toLongOrNull() ?: return null
+            return MessagePacket(p[1], p[2], time, p[5], p[6], p[4])
         }
     }
 }

@@ -20,6 +20,8 @@ Contract reference: [`docs/protocol.md`](protocol.md) §2. Server code: `server/
 
 Suggested order: 1, 2, 3, 5, 4, 6. Change 7 waits for the Meshtastic work.
 
+**Status (2026-10-07):** changes 1 to 6 are built in the app and unit-tested (`MessagePacketTest`, `SosStatusRulesTest`). Not yet tested end to end against the local server, and changes 2 (mesh relay), 3 (via mesh) and 4 still need real phones. The "From the control room" card on SOS status is a stand-in until there's a design.
+
 Nothing is needed for **who is going**: the server already puts the team name (for example "NDRF team 3") in the signed ack's `by`, and the app already shows `by` as `handledBy`.
 
 ---

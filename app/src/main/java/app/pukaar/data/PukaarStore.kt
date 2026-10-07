@@ -192,5 +192,40 @@ object PukaarStore {
         _chatSeenAt.value = prefs.getLong("chat_seen_at", 0L)
     }
 
+    /**
+     * A random id for this install, used only to count broadcast reach on the dashboard. Not linked
+     * to the person: not their number, not bitchat's identity.
+     */
+    @Synchronized
+    fun installId(): String {
+        prefs.getString("install_id", null)?.let { return it }
+        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        val random = java.security.SecureRandom()
+        val id = (1..16).map { chars[random.nextInt(chars.length)] }.joinToString("")
+        prefs.edit().putString("install_id", id).apply()
+        return id
+    }
+
+    /** Official broadcasts shown on this phone and not yet reported to the server (reach, change 6). */
+    @Synchronized
+    fun noteBroadcastSeen(id: String) {
+        if (!Regex("[a-z0-9]{1,16}").matches(id)) return
+        val reported = prefs.getStringSet("broadcasts_reported", emptySet()).orEmpty()
+        if (id in reported) return
+        prefs.edit().putStringSet("broadcasts_unreported", unreportedBroadcasts() + id).apply()
+    }
+
+    fun unreportedBroadcasts(): Set<String> = prefs.getStringSet("broadcasts_unreported", emptySet()).orEmpty().toSet()
+
+    @Synchronized
+    fun markBroadcastsReported(ids: Collection<String>) {
+        // Keep the reported list short; the server counts each device once anyway.
+        val reported = (prefs.getStringSet("broadcasts_reported", emptySet()).orEmpty() + ids).toList().takeLast(200).toSet()
+        prefs.edit()
+            .putStringSet("broadcasts_reported", reported)
+            .putStringSet("broadcasts_unreported", unreportedBroadcasts() - ids.toSet())
+            .apply()
+    }
+
     fun normalizePhone(phone: String): String = phone.filter { it.isDigit() || it == '+' }
 }

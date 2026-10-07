@@ -7,8 +7,13 @@ import app.pukaar.data.Profile
 import app.pukaar.device.DeviceStatus
 import app.pukaar.sos.AckPacket
 import app.pukaar.sos.AckStatus
+import app.pukaar.data.PukaarStore
 import app.pukaar.sos.ContactsPacket
+import app.pukaar.sos.FamilyNotice
+import app.pukaar.sos.FamilyStatus
 import app.pukaar.sos.MeshBridge
+import app.pukaar.sos.MeshHops
+import app.pukaar.sos.MessagePacket
 import app.pukaar.sos.OfficialPacket
 import app.pukaar.sos.Packets
 import app.pukaar.sos.SafePacket
@@ -34,6 +39,29 @@ import java.util.concurrent.TimeUnit
 
 /** What the server said about an SOS. */
 data class SosServerStatus(val status: AckStatus, val by: String, val smsSent: Boolean)
+
+/** One SOS in the status poll: its signed ack and the latest control-room messages (up to 3). */
+data class StatusResult(val ack: AckPacket, val messages: List<MessagePacket>)
+
+/**
+ * Body of `POST /v1/sos/sms`: the family texts the phone sent itself. Only finished texts are
+ * reported (sent or failed); waiting ones and those the server sent are left out.
+ */
+internal fun familyReportBody(sosId: String, family: List<FamilyNotice>, nowSec: Long = System.currentTimeMillis() / 1000): Map<String, Any> =
+    mapOf(
+        "id" to sosId,
+        "results" to family
+            .filter { it.status == FamilyStatus.SentDirect || it.status == FamilyStatus.Failed }
+            .take(5)
+            .map {
+                mapOf(
+                    "name" to it.name,
+                    "phone" to it.phone,
+                    "ok" to (it.status == FamilyStatus.SentDirect),
+                    "time" to (if (it.at > 0) it.at / 1000 else nowSec),
+                )
+            },
+    )
 
 /**
  * Uploads to the rescuer server when this phone has internet (FR-4), and brings the server's
@@ -64,15 +92,18 @@ object Gateway {
     private val uploadedContacts = mutableSetOf<String>()
     private val knownStatus = mutableMapOf<String, AckStatus>() // others' SOS id → last status broadcast
     private val relayedOfficial = mutableSetOf<String>()
+    private val relayedMessages = mutableSetOf<String>()        // control-room message ids sent into the mesh
     private val helpedSenders = mutableMapOf<String, Long>()     // sender → last upload time
     private var broadcastsSince = System.currentTimeMillis() / 1000
     private var activeOwnSosId: () -> String? = { null }
     private var onOwnAck: (AckPacket) -> Unit = {}
+    private var onOwnMessage: (MessagePacket) -> Unit = {}
 
     /**
      * @param ownSosIds every SOS this phone has sent (never re-uploaded as someone else's)
-     * @param activeOwnSosId this phone's open SOS, whose status is polled while online
+     * @param activeOwnSosId this phone's current SOS, whose status is polled while online
      * @param onOwnAck signed status updates for that SOS
+     * @param onOwnMessage signed control-room messages for that SOS
      */
     fun start(
         context: Context,
@@ -80,9 +111,11 @@ object Gateway {
         ownSosIds: () -> Set<String>,
         activeOwnSosId: () -> String? = { null },
         onOwnAck: (AckPacket) -> Unit = {},
+        onOwnMessage: (MessagePacket) -> Unit = {},
     ) {
         this.activeOwnSosId = activeOwnSosId
         this.onOwnAck = onOwnAck
+        this.onOwnMessage = onOwnMessage
         if (!configured) {
             Log.i(TAG, "No PUKAAR_GATEWAY_URL set; gateway off")
             return
@@ -111,7 +144,7 @@ object Gateway {
         for (msg in messages) {
             when (val packet = Packets.parse(msg.content)) {
                 is SosPacket -> if (packet.id !in ownIds && (uploadedSos[packet.id] ?: -1) < packet.seq) {
-                    if (uploadSos(packet, via = "mesh", relayedBy = myPeer, profile = null, contacts = null) != null) {
+                    if (uploadSos(packet, via = "mesh", relayedBy = myPeer, profile = null, contacts = null, hops = MeshHops.get(msg.id)) != null) {
                         uploadedSos[packet.id] = packet.seq
                         noteHelped(msg.senderPeerID ?: msg.sender)
                     }
@@ -136,17 +169,20 @@ object Gateway {
         val ownId = activeOwnSosId()
         val pollIds = othersIds + listOfNotNull(ownId)
         if (pollIds.isNotEmpty()) {
-            for (ack in pollStatus(pollIds)) {
+            for ((ack, controlMessages) in pollStatus(pollIds)) {
                 // Relay only what the server really signed; phones drop anything else anyway.
-                if (!ack.verified()) continue
+                val messagesOk = controlMessages.filter { it.verified() }
                 if (ack.id == ownId) {
-                    onOwnAck(ack)
+                    if (ack.verified()) onOwnAck(ack)
+                    messagesOk.forEach(onOwnMessage)
                     continue
                 }
-                if (knownStatus[ack.id] != ack.status) {
+                if (ack.verified() && knownStatus[ack.id] != ack.status) {
                     knownStatus[ack.id] = ack.status
                     MeshBridge.broadcast(context, ack.encode())
                 }
+                // The phone that brought the SOS in is the one most likely to reach the sender again.
+                messagesOk.forEach { if (relayedMessages.add(it.id)) MeshBridge.broadcast(context, it.encode()) }
             }
         }
 
@@ -154,6 +190,25 @@ object Gateway {
             if (!official.verified()) continue
             if (relayedOfficial.add(official.id)) MeshBridge.broadcast(context, official.encode())
         }
+
+        reportBroadcastsSeen()
+    }
+
+    /** POST /v1/broadcasts/seen: which official messages this phone has shown, for reach on the dashboard. */
+    private suspend fun reportBroadcastsSeen() {
+        val ids = PukaarStore.unreportedBroadcasts().take(20)
+        if (ids.isEmpty()) return
+        if (post("/v1/broadcasts/seen", gson.toJson(mapOf("device" to PukaarStore.installId(), "ids" to ids))) != null) {
+            PukaarStore.markBroadcastsReported(ids)
+        }
+    }
+
+    /** POST /v1/sos/sms: family texts the phone sent itself. Over HTTPS only; the body has phone numbers. */
+    suspend fun reportFamilySms(sosId: String, family: List<FamilyNotice>): Boolean {
+        if (!configured) return false
+        val body = familyReportBody(sosId, family)
+        if ((body["results"] as List<*>).isEmpty()) return true
+        return post("/v1/sos/sms", gson.toJson(body)) != null
     }
 
     private fun noteHelped(sender: String) {
@@ -170,6 +225,8 @@ object Gateway {
         relayedBy: String?,
         profile: Profile?,
         contacts: List<EmergencyContact>?,
+        hops: Int? = null,
+        locationAtSec: Long? = null,
     ): SosServerStatus? {
         if (!configured) return null
         val body = JsonObject().apply {
@@ -186,6 +243,9 @@ object Gateway {
             addProperty("message", packet.message)
             addProperty("via", via)
             relayedBy?.let { addProperty("relayedBy", it) }
+            // Bluetooth links the copy travelled (mesh uploads only), and how old the fix is when it's stale.
+            if (via == "mesh") hops?.takeIf { it in 0..50 }?.let { addProperty("hops", it) }
+            locationAtSec?.let { addProperty("locationAt", it) }
             profile?.let {
                 addProperty("phone", it.phone)
                 it.bloodGroup?.let { b -> addProperty("bloodGroup", b) }
@@ -227,22 +287,37 @@ object Gateway {
         return post("/v1/messages", gson.toJson(mapOf("messages" to items))) != null
     }
 
-    /** GET /v1/sos/status?ids=… */
-    suspend fun pollStatus(ids: Collection<String>): List<AckPacket> {
+    /** GET /v1/sos/status?ids=…: each SOS's signed status, plus its latest control-room messages. */
+    suspend fun pollStatus(ids: Collection<String>): List<StatusResult> {
         if (!configured || ids.isEmpty()) return emptyList()
         val response = get("/v1/sos/status?ids=" + ids.joinToString(",")) ?: return emptyList()
         return runCatching {
             gson.fromJson(response, JsonObject::class.java).getAsJsonArray("statuses").mapNotNull { el ->
                 val o = el.asJsonObject
                 val status = statusFromName(o.get("status")?.asString) ?: return@mapNotNull null
-                AckPacket(
-                    id = o.get("id").asString,
+                val id = o.get("id").asString
+                val ack = AckPacket(
+                    id = id,
                     status = status,
                     timeSec = o.get("time")?.asLong ?: return@mapNotNull null,
                     smsSent = o.get("smsSent")?.asBoolean ?: false,
                     by = o.get("by")?.asString.orEmpty(),
                     sig = o.get("sig")?.asString.orEmpty(),
                 )
+                val messages = o.getAsJsonArray("messages")?.mapNotNull { m ->
+                    runCatching {
+                        val mo = m.asJsonObject
+                        MessagePacket(
+                            sosId = id,
+                            id = mo.get("id").asString,
+                            timeSec = mo.get("time").asLong,
+                            from = mo.get("from")?.asString.orEmpty(),
+                            text = mo.get("text")?.asString.orEmpty(),
+                            sig = mo.get("sig")?.asString.orEmpty(),
+                        )
+                    }.getOrNull()
+                }.orEmpty()
+                StatusResult(ack, messages)
             }
         }.getOrDefault(emptyList())
     }

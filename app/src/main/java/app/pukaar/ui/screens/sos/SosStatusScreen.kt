@@ -37,6 +37,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import app.pukaar.sos.ActiveSos
+import app.pukaar.sos.ControlMessage
+import app.pukaar.sos.staleLocationAt
 import app.pukaar.sos.FamilyNotice
 import app.pukaar.sos.FamilyStatus
 import app.pukaar.sos.SosDetails
@@ -122,6 +124,12 @@ fun SosStatusScreen(
             verticalArrangement = Arrangement.spacedBy(PukaarDimens.space3),
         ) {
             HeroCard(sos)
+
+            val messages = sos.messages.orEmpty()
+            if (messages.isNotEmpty()) {
+                SectionHeader(stringResource(R.string.pk_sos_control_messages_title))
+                ControlMessages(messages)
+            }
 
             SectionHeader(stringResource(R.string.pk_sos_how_travelled))
             HopsPath(hopNodes(sos))
@@ -232,6 +240,8 @@ private fun Timeline(events: List<SosEvent>) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(stageTitle(event.stage)), style = MaterialTheme.typography.titleMedium)
                     val detail = when {
+                        event.back && event.stage == SosStage.RescuerAttending -> stringResource(R.string.pk_sos_event_reopened)
+                        event.back -> stringResource(R.string.pk_sos_event_back_to_new)
                         event.stage == SosStage.Relayed && event.detail?.toIntOrNull() != null -> {
                             val n = event.detail.toInt()
                             pluralStringResource(R.plurals.pk_sos_passed_through, n, n)
@@ -241,6 +251,33 @@ private fun Timeline(events: List<SosEvent>) {
                     if (!detail.isNullOrBlank()) Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text(DateFormat.getTimeFormat(context).format(Date(event.at)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+/**
+ * Messages from the control room, newest first. Not in the handoff (2i) yet: styled like official
+ * messages in chat (primaryContainer card with the verified icon) until there's a design decision.
+ */
+@Composable
+private fun ControlMessages(messages: List<ControlMessage>) {
+    val context = LocalContext.current
+    Column(verticalArrangement = Arrangement.spacedBy(PukaarDimens.space2)) {
+        messages.asReversed().forEach { message ->
+            PukaarCard(
+                Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(PukaarDimens.space1)) {
+                    PukaarIcon(Sym.verified, null, size = 18.dp)
+                    Text(
+                        stringResource(R.string.pk_sos_control_message_meta, message.from, DateFormat.getTimeFormat(context).format(Date(message.at))),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
+                Text(message.text, style = MaterialTheme.typography.bodyLarge)
             }
         }
     }
@@ -259,8 +296,12 @@ fun stageTitle(stage: SosStage) = when (stage) {
 private fun WhatYouSent(sos: ActiveSos) {
     PukaarCard(Modifier.fillMaxWidth()) {
         val loc = sos.location
+        // An old fix is flagged, as rescuers see it on the dashboard ("Last known, 12 min old").
+        val stale = sos.staleLocationAt()?.let {
+            stringResource(R.string.pk_sos_location_old, DateUtils.getRelativeTimeSpanString(it, sos.startedAt, DateUtils.MINUTE_IN_MILLIS).toString())
+        }
         SentRow(Sym.locationOn, if (loc != null) formatCoords(loc.lat, loc.lon) else stringResource(R.string.pk_sos_no_location),
-            loc?.accuracyM?.let { stringResource(R.string.pk_sos_accuracy, it) })
+            listOfNotNull(stale, loc?.accuracyM?.let { stringResource(R.string.pk_sos_accuracy, it) }).joinToString(" · ").ifBlank { null })
         val flags = sos.details.flags.map { stringResource(SosManager.flagLabel(it)) }
         SentRow(Sym.group, (listOf(pluralStringResource(R.plurals.pk_people_count, sos.details.people, sos.details.people)) + flags).joinToString(" · "), null)
         if (sos.details.message.isNotBlank()) SentRow(Sym.chat, "“${sos.details.message}”", null)
@@ -368,4 +409,25 @@ internal fun sampleSos(stage: SosStage = SosStage.HelpNotified): ActiveSos {
 @Composable
 private fun SosStatusPreview() = PreviewTheme {
     SosStatusScreen(sampleSos(), {}, {}, {}, {}, {})
+}
+
+private fun sampleWithMessages(count: Int): ActiveSos {
+    val sos = sampleSos(SosStage.RescuerAttending)
+    val all = listOf(
+        ControlMessage("m1", "District Control Room, Darbhanga", "Boat coming in 20 minutes. Stay on the roof.", sos.startedAt + 300_000),
+        ControlMessage("m2", "Kavita Rao", "नाव 10 मिनट में पहुँचेगी। छत पर ही रहें और कुछ चमकीला हिलाते रहें।", sos.startedAt + 900_000),
+    )
+    return sos.copy(messages = all.take(count))
+}
+
+@PukaarPreviews
+@Composable
+private fun SosStatusOneMessagePreview() = PreviewTheme {
+    SosStatusScreen(sampleWithMessages(1), {}, {}, {}, {}, {})
+}
+
+@PukaarPreviews
+@Composable
+private fun SosStatusTwoMessagesPreview() = PreviewTheme {
+    SosStatusScreen(sampleWithMessages(2), {}, {}, {}, {}, {})
 }

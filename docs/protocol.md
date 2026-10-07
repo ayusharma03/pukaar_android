@@ -15,6 +15,7 @@ Fields are separated by `|`. Free-text fields have `|` replaced by `/` and newli
 | Contacts | `PKCT1\|id\|mode\|data` | The person in trouble, with each SOS broadcast |
 | Ack | `PKACK1\|id\|status\|time\|sms\|sig\|by` | A gateway phone, relaying a server status change |
 | Official | `PKOFF1\|id\|sig\|from\|text` | A gateway phone, relaying a dashboard broadcast |
+| Message | `PKMSG1\|sosId\|msgId\|time\|sig\|from\|text` | A gateway phone, relaying a control-room message to one SOS sender |
 
 - `id`: 8 hex characters, random per SOS. `seq` goes up with each "Update details".
 - `lat,lon`: decimal degrees with 5 places, or empty when there is no fix. `acc`: metres, or empty.
@@ -68,8 +69,10 @@ Any phone with internet is a gateway (FR-4). Set the server base URL at build ti
 - New dashboard broadcasts are relayed into the mesh as `PKOFF1`.
 - The gateway polls every 30 seconds while online.
 - Optional fields from newer phones: `hops` (mesh hops the copy took; the server keeps the fewest), `radioNode` (the LoRa node that heard it, with `via: "radio"`) and `locationAt` (when the fix is older than the SOS). The server also adds `area: {block, village}` from the location for the dashboard.
-- `messages` in a status are control-room messages to that one sender, signed over `PKMSG1|sosId|msgId|time|from|text` (same key as acks, `from` cleaned like `by`). Each is at most 200 bytes so it fits a radio packet. The gateway should relay them to the sender like an Ack. **Not yet handled by the Android app** (see [android-dashboard-integration.md](android-dashboard-integration.md)).
-- `POST /v1/sos/sms` and `POST /v1/broadcasts/seen` are **not yet sent by the Android app.** Until they are, the dashboard shows only server-sent family texts and broadcast reach stays at 0.
+- `messages` in a status are control-room messages to that one sender, signed over `PKMSG1|sosId|msgId|time|from|text` (same key as acks, `from` cleaned like `by`). Each is at most 200 bytes so it fits a radio packet. The gateway relays them into the mesh as `PKMSG1` once each (for SOS it uploaded), and hands them straight to the SOS screen for its own SOS. Phones ignore unsigned ones.
+- The sender's phone reports its own family texts with `POST /v1/sos/sms` (HTTPS only, never over the mesh) and retries until the SOS is on the server. Phones with internet report official messages they've shown with `POST /v1/broadcasts/seen`; phones without internet aren't counted, so reach is an undercount.
+- Acks are ordered by their server `time`, so the dashboard's Undo and Reopen reach the phone. A phone whose person tapped "I'm safe now" ignores a reopen.
+- `locationAt` is sent only on direct uploads; `PKSOS1` has no field for it. `hops` comes from the bitchat packet TTL (a one-line hook in bitchat's `MessageHandler.kt`) and still needs checking with three real phones in a line.
 
 ### Dashboard routes
 
@@ -99,4 +102,4 @@ Direct uploads from the sender's own phone travel over HTTPS, so those responses
 
 - **Demo builds without keys** send contact numbers in plain form over the mesh, and accept no acks from it. Set both keys for any real deployment.
 - **No LoRa yet.** Meshtastic pairing and "Send by radio" (FR-5, FR-6) are not built. The packet size already fits.
-- **Per-hop relay counts aren't known.** bitchat doesn't report how many hops a broadcast took, so the app shows how many nearby phones took the SOS.
+- **Hop counts are unverified.** They are worked out from the packet TTL (`MESSAGE_TTL_HOPS − ttl + 1`) and haven't been checked on real phones yet.

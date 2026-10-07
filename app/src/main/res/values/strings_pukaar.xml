@@ -598,4 +598,12 @@
     <!-- Offline area while waiting for a location fix -->
     <string name="pk_offline_locating">Finding your location…</string>
     <string name="pk_offline_no_location">Location not found, so this is the sample region. Turn on location to save your own area.</string>
+
+    <!-- Rescuer dashboard: control-room messages, undo and reopen, old location -->
+    <string name="pk_sos_control_messages_title">From the control room</string>
+    <string name="pk_notif_control_message_title">Message from the control room</string>
+    <string name="pk_sos_control_message_meta">%1$s · %2$s</string>
+    <string name="pk_sos_event_back_to_new">The control room moved your SOS back to waiting</string>
+    <string name="pk_sos_event_reopened">The control room reopened your SOS</string>
+    <string name="pk_sos_location_old">Your last known location, from %1$s</string>
 </resources>

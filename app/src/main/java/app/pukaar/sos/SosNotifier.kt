@@ -28,6 +28,7 @@ object SosNotifier {
     private const val ID_SHAKE = 7102
     private const val ID_NEARBY_BASE = 7200
     private const val ID_OFFICIAL_BASE = 7400
+    private const val ID_CONTROL_BASE = 7700
 
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
@@ -135,6 +136,25 @@ object SosNotifier {
             .setContentIntent(openApp(context, PukaarIntents.ROUTE_CHAT, 4))
             .build()
         runCatching { NotificationManagerCompat.from(context).notify(ID_NEARBY_BASE + (packet.id.hashCode() and 0xff), notification) }
+    }
+
+    /** A control-room message for this phone's SOS (dashboard D3). Each message gets its own notification. */
+    fun showControlMessage(context: Context, message: ControlMessage) {
+        if (!canNotify(context)) return
+        ensureChannels(context)
+        val notification = NotificationCompat.Builder(context, CHANNEL_OFFICIAL)
+            .setSmallIcon(R.drawable.ic_stat_pukaar)
+            .setSubText(message.from)
+            .setContentTitle(context.getString(R.string.pk_notif_control_message_title))
+            .setContentText(message.text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message.text))
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(true)
+            .setContentIntent(openApp(context, PukaarIntents.ROUTE_SOS_STATUS, 6))
+            .build()
+        runCatching { NotificationManagerCompat.from(context).notify(ID_CONTROL_BASE + (message.id.hashCode() and 0xff), notification) }
     }
 
     fun showOfficial(context: Context, packet: OfficialPacket) {

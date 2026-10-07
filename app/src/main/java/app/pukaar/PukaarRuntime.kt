@@ -54,8 +54,10 @@ object PukaarRuntime {
         Gateway.start(
             app, scope,
             ownSosIds = { SosManager.ownIds },
-            activeOwnSosId = { SosManager.active.value?.takeIf { !it.closed }?.id },
+            // Polled until the person dismisses it, so a reopen or a message after "resolved" still arrives.
+            activeOwnSosId = { SosManager.active.value?.id },
             onOwnAck = { SosManager.onPacket(it) },
+            onOwnMessage = { SosManager.onPacket(it) },
         )
         ShakeTrigger.start(app, scope)
         OfflineMaps.init(app)
@@ -91,6 +93,8 @@ object PukaarRuntime {
                 for (msg in fresh) {
                     val packet = Packets.parse(msg.content) ?: continue
                     SosManager.onPacket(packet)
+                    // Verified officials show in the chat; count them for broadcast reach.
+                    if (packet is OfficialPacket && packet.verified()) PukaarStore.noteBroadcastSeen(packet.id)
                     if (!notify) continue
                     when (packet) {
                         is SosPacket -> if (packet.id !in own) SosNotifier.showNearbySos(context, packet, sosSummary(context, packet))
