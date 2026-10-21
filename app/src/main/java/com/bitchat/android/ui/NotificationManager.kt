@@ -883,6 +883,9 @@ class NotificationManager(
     }
 
     private fun notifySafely(notificationID: Int, notification: android.app.Notification) {
+        // Pukaar: private-chat, location-chat and mention notifications lead to bitchat screens
+        // Pukaar doesn't show, so they're off. Pukaar posts its own (app.pukaar.sos.SosNotifier).
+        if (PUKAAR_HIDES_BITCHAT_CHAT_NOTIFICATIONS) return
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
@@ -943,3 +946,6 @@ class NotificationManager(
         }
     }
 }
+
+/** Pukaar: see notifySafely. */
+private const val PUKAAR_HIDES_BITCHAT_CHAT_NOTIFICATIONS = true

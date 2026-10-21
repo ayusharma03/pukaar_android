@@ -241,6 +241,8 @@ internal class PeerAvailabilityNotifier(
 
     @SuppressLint("MissingPermission")
     private fun showNotification(peerCount: Int) {
+        // Pukaar: "bitchatters nearby!" is off; Pukaar's running notification already shows nearby phones.
+        if (PUKAAR_HIDES_PEER_NOTIFICATION) return
         if (!canPostNotifications()) {
             Log.i(TAG, "Skipping peer availability notification because notifications are disabled")
             return
@@ -278,3 +280,6 @@ internal class PeerAvailabilityNotifier(
         }
     }
 }
+
+/** Pukaar: see showNotification. */
+private const val PUKAAR_HIDES_PEER_NOTIFICATION = true

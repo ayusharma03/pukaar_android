@@ -77,5 +77,10 @@ class BitchatApplication : Application() {
         try { com.bitchat.android.service.MeshForegroundService.start(this) } catch (_: Exception) { }
 
         // TorManager already initialized above
+
+        // Pukaar: SOS engine, shake trigger, gateway and device status (app.pukaar).
+        try { app.pukaar.PukaarRuntime.init(this) } catch (e: Exception) {
+            android.util.Log.e("BitchatApplication", "Pukaar runtime failed to start", e)
+        }
     }
 }

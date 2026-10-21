@@ -492,6 +492,8 @@ class MessageHandler(private val myPeerID: String, private val appContext: andro
                 senderPeerID = peerID,
                 timestamp = Date(packet.timestamp.toLong())
             )
+            // Pukaar: how many links this broadcast travelled, for the rescuer dashboard.
+            app.pukaar.sos.MeshHops.record(message.id, com.bitchat.android.util.AppConstants.MESSAGE_TTL_HOPS.toInt() - packet.ttl.toInt() + 1)
             delegate?.onMessageReceived(message)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to process broadcast message: ${e.message}")

@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <application>
+    <!-- Pukaar: allow a local test server over HTTP in debug builds. -->
+    <application android:networkSecurityConfig="@xml/pk_debug_network_security">
         <!-- Debug-only ADB test hook. Drives mesh operations (scan, connect,
              handshake, DMs, files, broadcast, raw packets) from host scripts.
              Exported intentionally so `adb shell am broadcast` can reach it;
@@ -12,7 +13,17 @@
             android:exported="true"
             tools:ignore="ExportedReceiver">
             <intent-filter>
-                <action android:name="com.bitchat.droid.TEST_HOOK" />
+                <action android:name="app.pukaar.TEST_HOOK" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Pukaar debug-only demo hook: inject an incoming SOS, message or safe update. -->
+        <receiver
+            android:name="app.pukaar.debug.PukaarDemoReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="app.pukaar.DEMO" />
             </intent-filter>
         </receiver>
     </application>

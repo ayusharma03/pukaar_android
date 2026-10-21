@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Colours for RemoteViews widgets, which can't read the Compose theme. Values from docs/design-tokens.md. -->
+<resources>
+    <color name="pk_sos_fill">#FFD32F2F</color>
+    <color name="pk_on_sos_fill">#FFFFFFFF</color>
+    <color name="pk_widget_surface">#FFEEEDF4</color>
+    <color name="pk_widget_on_surface">#FF1A1B21</color>
+    <color name="pk_widget_on_surface_variant">#FF45464F</color>
+    <color name="pk_widget_mesh">#FF006A6A</color>
+</resources>

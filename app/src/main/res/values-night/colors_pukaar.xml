@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pk_widget_surface">#FF1E1F25</color>
+    <color name="pk_widget_on_surface">#FFE3E2E9</color>
+    <color name="pk_widget_on_surface_variant">#FFC5C6D0</color>
+    <color name="pk_widget_mesh">#FF4CDADA</color>
+</resources>

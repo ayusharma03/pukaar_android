@@ -96,6 +96,9 @@ class PowerManager private constructor(context: Context) : LifecycleEventObserve
     @Volatile private var isAppInBackground = true
     @Volatile private var hasDirectPeers = false
     @Volatile private var shutdown = false
+    // Pukaar: user battery-saver settings (Settings > Battery saver).
+    @Volatile private var pukaarSaverNow = false
+    @Volatile private var pukaarSaverAuto = true
 
     private val _profile = MutableStateFlow(
         PowerProfileResolver.resolve(
@@ -250,10 +253,24 @@ class PowerManager private constructor(context: Context) : LifecycleEventObserve
         }
     }
 
+    /** [now] forces the low-battery profile; [auto] = false keeps full scanning down to the critical level. */
+    fun setPukaarBatterySaver(now: Boolean, auto: Boolean) {
+        pukaarSaverNow = now
+        pukaarSaverAuto = auto
+        refreshProfile()
+    }
+
+    private fun effectiveBatteryLevel(): Int = when {
+        pukaarSaverNow -> minOf(batteryLevel, AppConstants.Power.LOW_BATTERY_PERCENT)
+        !pukaarSaverAuto && batteryLevel > AppConstants.Power.CRITICAL_BATTERY_PERCENT ->
+            maxOf(batteryLevel, AppConstants.Power.LOW_BATTERY_PERCENT + 1)
+        else -> batteryLevel
+    }
+
     private fun refreshProfile() {
         if (shutdown) return
         val next = PowerProfileResolver.resolve(
-            batteryLevel = batteryLevel,
+            batteryLevel = effectiveBatteryLevel(),
             isCharging = isCharging,
             isBackground = isAppInBackground,
             hasDirectPeers = hasDirectPeers

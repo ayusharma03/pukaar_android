@@ -42,7 +42,7 @@ import com.bitchat.android.onboarding.PermissionManager
 import com.bitchat.android.ui.ChatScreen
 import com.bitchat.android.ui.ChatViewModel
 import com.bitchat.android.ui.OrientationAwareActivity
-import com.bitchat.android.ui.theme.BitchatTheme
+import app.pukaar.ui.theme.PukaarTheme
 import com.bitchat.android.wifiaware.WifiAwareController
 import com.bitchat.android.nostr.PoWPreferenceManager
 import com.bitchat.android.services.VerificationService
@@ -62,6 +62,8 @@ class MainActivity : OrientationAwareActivity() {
     private lateinit var unifiedMeshService: MeshService
     private val mainViewModel: MainViewModel by viewModels()
     private var pendingMeshForegroundServiceStart = false
+    /** Pukaar screen to open, from a notification, the SOS tile or a widget. */
+    private val pukaarRoute = mutableStateOf<String?>(null)
     private val chatViewModel: ChatViewModel by viewModels { 
         object : ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
@@ -154,16 +156,24 @@ class MainActivity : OrientationAwareActivity() {
             onOnboardingFailed = ::handleOnboardingFailed
         )
         
+        pukaarRoute.value = intent.getStringExtra(app.pukaar.PukaarIntents.EXTRA_ROUTE)
         setContent {
-            BitchatTheme {
+            // Pukaar: theme from Settings, and Pukaar's own onboarding before bitchat's checks.
+            val pukaarSettings by app.pukaar.data.PukaarStore.settings.collectAsState()
+            val pukaarOnboarded by app.pukaar.data.PukaarStore.onboardingDone.collectAsState()
+            PukaarTheme(pukaarSettings.theme) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.background
                 ) { innerPadding ->
-                    OnboardingFlowScreen(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                    )
+                    if (!pukaarOnboarded) {
+                        app.pukaar.ui.screens.onboarding.PukaarOnboarding(onFinished = { checkOnboardingStatus() })
+                    } else {
+                        OnboardingFlowScreen(modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                        )
+                    }
                 }
             }
         }
@@ -189,8 +199,10 @@ class MainActivity : OrientationAwareActivity() {
         }
         
         // Only start onboarding process if we're in the initial CHECKING state
-        // This prevents restarting onboarding on configuration changes
-        if (mainViewModel.onboardingState.value == OnboardingState.CHECKING) {
+        // This prevents restarting onboarding on configuration changes.
+        // Pukaar: wait until Pukaar's own onboarding (which asks for permissions) is done.
+        if (mainViewModel.onboardingState.value == OnboardingState.CHECKING &&
+            app.pukaar.data.PukaarStore.onboardingDone.value) {
             checkOnboardingStatus()
         }
     }
@@ -229,15 +241,16 @@ class MainActivity : OrientationAwareActivity() {
         }
 
         when (onboardingState) {
+            // Pukaar: Pukaar-styled versions of bitchat's start-up screens (app.pukaar.ui.screens.system).
             OnboardingState.PERMISSION_REQUESTING -> {
-                InitializingScreen(modifier)
+                app.pukaar.ui.screens.system.PukaarStarting()
             }
             
             OnboardingState.BLUETOOTH_CHECK -> {
-                BluetoothCheckScreen(
-                    modifier = modifier,
+                app.pukaar.ui.screens.system.PukaarBluetoothCheck(
                     status = bluetoothStatus,
-                    onEnableBluetooth = {
+                    loading = isBluetoothLoading,
+                    onEnable = {
                         mainViewModel.updateBluetoothLoading(true)
                         bluetoothStatusManager.requestEnableBluetooth()
                     },
@@ -247,31 +260,29 @@ class MainActivity : OrientationAwareActivity() {
                     onSkip = {
                         mainViewModel.skipBluetoothCheck()
                         checkLocationAndProceed()
-                    },
-                    isLoading = isBluetoothLoading
+                    }
                 )
             }
             
             OnboardingState.LOCATION_CHECK -> {
-                LocationCheckScreen(
-                    modifier = modifier,
+                app.pukaar.ui.screens.system.PukaarLocationCheck(
                     status = locationStatus,
-                    onEnableLocation = {
+                    loading = isLocationLoading,
+                    onEnable = {
                         mainViewModel.updateLocationLoading(true)
                         locationStatusManager.requestEnableLocation()
                     },
                     onRetry = {
                         checkLocationAndProceed()
-                    },
-                    isLoading = isLocationLoading
+                    }
                 )
             }
             
             OnboardingState.BATTERY_OPTIMIZATION_CHECK -> {
-                BatteryOptimizationScreen(
-                    modifier = modifier,
+                app.pukaar.ui.screens.system.PukaarBatteryCheck(
                     status = batteryOptimizationStatus,
-                    onDisableBatteryOptimization = {
+                    loading = isBatteryOptimizationLoading,
+                    onDisable = {
                         mainViewModel.updateBatteryOptimizationLoading(true)
                         batteryOptimizationManager.requestDisableBatteryOptimization()
                     },
@@ -279,17 +290,16 @@ class MainActivity : OrientationAwareActivity() {
                         checkBatteryOptimizationAndProceed()
                     },
                     onSkip = {
-                        // Skip battery optimization and proceed
+                        // Skip battery optimization and proceed. Pukaar: remember it, so it isn't asked twice.
+                        BatteryOptimizationPreferenceManager.setSkipped(this@MainActivity, true)
                         proceedWithPermissionCheck()
-                    },
-                    isLoading = isBatteryOptimizationLoading
+                    }
                 )
             }
             
             OnboardingState.PERMISSION_EXPLANATION -> {
-                PermissionExplanationScreen(
-                    modifier = modifier,
-                    permissionCategories = permissionManager.getCategorizedPermissions(),
+                app.pukaar.ui.screens.system.PukaarPermissionsCheck(
+                    categories = permissionManager.getCategorizedPermissions(),
                     onContinue = {
                         mainViewModel.updateOnboardingState(OnboardingState.PERMISSION_REQUESTING)
                         onboardingCoordinator.requestPermissions()
@@ -298,8 +308,7 @@ class MainActivity : OrientationAwareActivity() {
             }
 
             OnboardingState.BACKGROUND_LOCATION_EXPLANATION -> {
-                BackgroundLocationPermissionScreen(
-                    modifier = modifier,
+                app.pukaar.ui.screens.system.PukaarBackgroundLocationCheck(
                     onContinue = {
                         onboardingCoordinator.requestBackgroundLocation()
                     },
@@ -313,30 +322,18 @@ class MainActivity : OrientationAwareActivity() {
             }
 
             OnboardingState.CHECKING, OnboardingState.INITIALIZING, OnboardingState.COMPLETE -> {
-                // Set up back navigation handling for the chat screen
-                val backCallback = object : OnBackPressedCallback(true) {
-                    override fun handleOnBackPressed() {
-                        // Let ChatViewModel handle navigation state
-                        val handled = chatViewModel.handleBackPressed()
-                        if (!handled) {
-                            // If ChatViewModel doesn't handle it, disable this callback
-                            // and let the system handle it (which will exit the app)
-                            this.isEnabled = false
-                            onBackPressedDispatcher.onBackPressed()
-                            this.isEnabled = true
-                        }
-                    }
-                }
-
-                // Add the callback - this will be automatically removed when the activity is destroyed
-                onBackPressedDispatcher.addCallback(this, backCallback)
-                ChatScreen(viewModel = chatViewModel)
+                // Pukaar replaces bitchat's ChatScreen; its NavHost handles back navigation.
+                val route by pukaarRoute
+                app.pukaar.ui.PukaarNavHost(
+                    chatViewModel = chatViewModel,
+                    pendingRoute = route,
+                    onRouteHandled = { pukaarRoute.value = null },
+                )
             }
             
             OnboardingState.ERROR -> {
-                InitializationErrorScreen(
-                    modifier = modifier,
-                    errorMessage = errorMessage,
+                app.pukaar.ui.screens.system.PukaarStartError(
+                    detail = errorMessage,
                     onRetry = {
                         mainViewModel.updateOnboardingState(OnboardingState.CHECKING)
                         checkOnboardingStatus()
@@ -575,7 +572,8 @@ class MainActivity : OrientationAwareActivity() {
                 mainViewModel.updateOnboardingState(OnboardingState.LOCATION_CHECK)
                 mainViewModel.updateLocationLoading(false)
             }
-            currentBatteryOptimizationStatus == BatteryOptimizationStatus.ENABLED -> {
+            currentBatteryOptimizationStatus == BatteryOptimizationStatus.ENABLED &&
+                !BatteryOptimizationPreferenceManager.isSkipped(this) -> {
                 // Battery optimization still enabled, show battery optimization screen
                 mainViewModel.updateBatteryOptimizationStatus(currentBatteryOptimizationStatus)
                 mainViewModel.updateOnboardingState(OnboardingState.BATTERY_OPTIMIZATION_CHECK)
@@ -729,7 +727,8 @@ class MainActivity : OrientationAwareActivity() {
         }
 
         com.bitchat.android.service.AppShutdownCoordinator.cancelPendingShutdown()
-        
+        intent.getStringExtra(app.pukaar.PukaarIntents.EXTRA_ROUTE)?.let { pukaarRoute.value = it }
+
         // Handle notification intents when app is already running
         if (mainViewModel.onboardingState.value == OnboardingState.COMPLETE) {
             handleNotificationIntent(intent)
@@ -850,7 +849,7 @@ class MainActivity : OrientationAwareActivity() {
 
     private fun handleVerificationIntent(intent: Intent) {
         val uri = intent.data ?: return
-        if (uri.scheme != "bitchat" || uri.host != "verify") return
+        if ((uri.scheme != "pukaar" && uri.scheme != "bitchat") || uri.host != "verify") return
 
         chatViewModel.showVerificationSheet()
         val qr = VerificationService.verifyScannedQR(uri.toString())

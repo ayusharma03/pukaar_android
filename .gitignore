@@ -1,5 +1,5 @@
 # Android Studio / IntelliJ
-.idea/
+.idea.old/
 *.iml
 build/
 !*/build/filtered-manifest/
@@ -74,3 +74,6 @@ tools/arti-build/target/
 
 # JVM heap dumps (a Gradle daemon OOM drops these in the repo root)
 *.hprof
+
+# Android Studio per-user project files
+.idea/
